@@ -1,0 +1,147 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
+    // Bootstrapped administrator from deployment runtime
+    function isBootstrappedAdmin() {
+      return isSignedIn() && request.auth.token.email == 'vubakhanhtrinh30102009@gmail.com';
+    }
+
+    // Robust Admin Authorization Verification
+    function isAdmin() {
+      return isSignedIn() && (
+        isBootstrappedAdmin() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // 1. Admin Registry Collection
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow list: if isAdmin();
+      allow create, update, delete: if isValidId(adminId) && isAdmin();
+    }
+
+    // 2. Global Site Settings
+    match /site_settings/{settingId} {
+      allow read: if true;
+      allow write: if isValidId(settingId) && isAdmin();
+    }
+
+    // 3. Exhibition Rooms / Sections
+    match /rooms/{roomId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(roomId) && isAdmin();
+    }
+
+    // 4. History Periods
+    match /history_periods/{historyPeriodId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(historyPeriodId) && isAdmin();
+    }
+
+    // 5. Timeline Events (1966-2026)
+    match /timeline_events/{timelineEventId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(timelineEventId) && isAdmin();
+    }
+
+    // 6. Development Milestones
+    match /development_milestones/{milestoneId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(milestoneId) && isAdmin();
+    }
+
+    // 7. Artifacts Collection
+    match /artifacts/{artifactId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(artifactId) && isAdmin();
+    }
+
+    // 8. Achievements & Honors
+    match /achievements/{achievementId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(achievementId) && isAdmin();
+    }
+
+    // 9. People / School Generations
+    match /people/{personId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(personId) && isAdmin();
+    }
+
+    // 10. Memories & Remembrances
+    match /memories/{memoryId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(memoryId) && isAdmin();
+    }
+
+    // 11. News & 60-Year Events
+    match /news_events/{newsEventId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(newsEventId) && isAdmin();
+    }
+
+    // 12. Digital Resources & Archives
+    match /digital_resources/{resourceId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(resourceId) && isAdmin();
+    }
+
+    // 13. Hotspots
+    match /hotspots/{hotspotId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(hotspotId) && isAdmin();
+    }
+
+    // 14. Sources
+    match /sources/{sourceId} {
+      allow read: if true;
+      allow write: if isValidId(sourceId) && isAdmin();
+    }
+
+    // 15. Licenses & AI Disclosures
+    match /licenses/{licenseId} {
+      allow read: if true;
+      allow write: if isValidId(licenseId) && isAdmin();
+    }
+
+    // 16. Media Assets
+    match /media_assets/{mediaAssetId} {
+      allow read: if true;
+      allow write: if isValidId(mediaAssetId) && isAdmin();
+    }
+
+    // 17. Exhibition Credits
+    match /credits/{creditId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(creditId) && isAdmin();
+    }
+
+    // 18. Connection Health Check Test
+    match /test/{testId} {
+      allow read: if true;
+    }
+
+    // 19. Unified Editorial Contents
+    match /editorial_contents/{contentId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isValidId(contentId) && isAdmin();
+    }
+  }
+}

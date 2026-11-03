@@ -1,0 +1,497 @@
+{
+  "entities": {
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrator profile for CMS access",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "Admin email address" },
+        "role": { "type": "string", "enum": ["ADMIN"], "description": "RBAC Role" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "isActive": { "type": "boolean", "description": "Whether administrator is active" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "isActive"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global settings for Cosmic Heritage project",
+      "type": "object",
+      "properties": {
+        "projectTitle": { "type": "string", "description": "Main title" },
+        "projectSubtitle": { "type": "string", "description": "Subtitle" },
+        "tagline": { "type": "string", "description": "Project tagline" },
+        "schoolName": { "type": "string", "description": "Official school name" },
+        "defaultLanguage": { "type": "string", "enum": ["vi", "en"] },
+        "supportedLanguages": { "type": "array", "description": "List of supported language codes" },
+        "welcomeMessageVi": { "type": "string" },
+        "welcomeMessageEn": { "type": "string" },
+        "contactInformation": { "type": "string" },
+        "maintenanceMode": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectTitle", "schoolName"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "Exhibition room section",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nameVi": { "type": "string" },
+        "nameEn": { "type": "string" },
+        "slug": { "type": "string" },
+        "descriptionVi": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "displayOrder": { "type": "number" },
+        "status": { "type": "string", "enum": ["planned", "draft", "in_progress", "completed"] },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "nameVi", "displayOrder", "status", "isPublished"]
+    },
+    "HistoryPeriod": {
+      "title": "HistoryPeriod",
+      "description": "Historical period of school development",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "yearStart": { "type": "number" },
+        "yearEnd": { "type": "number" },
+        "subtitleVi": { "type": "string" },
+        "subtitleEn": { "type": "string" },
+        "descriptionVi": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "storyVi": { "type": "string" },
+        "storyEn": { "type": "string" },
+        "imageGallery": { "type": "array" },
+        "audioUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["titleVi", "verificationStatus", "isPublished", "displayOrder"]
+    },
+    "TimelineEvent": {
+      "title": "TimelineEvent",
+      "description": "Event on 1966-2026 Orbital Timeline",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "year": { "type": "number" },
+        "date": { "type": "string" },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "descriptionVi": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "category": { "type": "string", "enum": ["foundation", "war_period", "development", "achievement", "milestone", "anniversary", "other"] },
+        "imageGallery": { "type": "array" },
+        "audioUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["year", "titleVi", "category", "verificationStatus", "isPublished"]
+    },
+    "DevelopmentMilestone": {
+      "title": "DevelopmentMilestone",
+      "description": "Milestone in school facilities, leadership, and organization",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "period": { "type": "string" },
+        "yearStart": { "type": "number" },
+        "yearEnd": { "type": "number" },
+        "descriptionVi": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "imageGallery": { "type": "array" },
+        "audioUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["titleVi", "verificationStatus", "isPublished", "displayOrder"]
+    },
+    "Artifact": {
+      "title": "Artifact",
+      "description": "Historical artifact or museum relic",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["medal", "certificate", "document", "photo", "photo_album", "object", "other"] },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "subtitleVi": { "type": "string" },
+        "subtitleEn": { "type": "string" },
+        "year": { "type": "number" },
+        "descriptionVi": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "storyVi": { "type": "string" },
+        "storyEn": { "type": "string" },
+        "imageGallery": { "type": "array" },
+        "captionVi": { "type": "string" },
+        "captionEn": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["type", "titleVi", "verificationStatus", "isPublished", "displayOrder"]
+    },
+    "Achievement": {
+      "title": "Achievement",
+      "description": "Academic, sports, science or organizational award",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "year": { "type": "number" },
+        "category": { "type": "string", "enum": ["school", "academic", "student", "science", "arts", "sports", "youth", "other"] },
+        "descriptionVi": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "imageGallery": { "type": "array" },
+        "documentUrl": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["titleVi", "category", "verificationStatus", "isPublished", "displayOrder"]
+    },
+    "Person": {
+      "title": "Person",
+      "description": "Historical school leader, teacher, or alumnus",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "roleVi": { "type": "string" },
+        "roleEn": { "type": "string" },
+        "period": { "type": "string" },
+        "shortBioVi": { "type": "string" },
+        "shortBioEn": { "type": "string" },
+        "bioVi": { "type": "string" },
+        "bioEn": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["name", "roleVi", "verificationStatus", "isPublished", "displayOrder"]
+    },
+    "Memory": {
+      "title": "Memory",
+      "description": "Remembrance story, interview, or alumni recollection",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "author": { "type": "string" },
+        "generation": { "type": "string" },
+        "year": { "type": "number" },
+        "contentVi": { "type": "string" },
+        "contentEn": { "type": "string" },
+        "imageGallery": { "type": "array" },
+        "audioUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["titleVi", "contentVi", "author", "verificationStatus", "isPublished"]
+    },
+    "NewsEvent": {
+      "title": "NewsEvent",
+      "description": "Anniversary news, celebration activity, or announcement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "summaryVi": { "type": "string" },
+        "summaryEn": { "type": "string" },
+        "contentVi": { "type": "string" },
+        "contentEn": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "imageGallery": { "type": "array" },
+        "publishedDate": { "type": "string" },
+        "category": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["titleVi", "publishedDate", "isPublished"]
+    },
+    "DigitalResource": {
+      "title": "DigitalResource",
+      "description": "Digital archive resource (document, podcast, external archive)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["video", "podcast", "document", "online_archive", "external_reference", "source_material"] },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "descriptionVi": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "url": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "licenseIds": { "type": "array" },
+        "year": { "type": "number" },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["type", "titleVi", "url", "isPublished"]
+    },
+    "Hotspot": {
+      "title": "Hotspot",
+      "description": "Content-level hotspot for exhibition room discovery",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "roomId": { "type": "string" },
+        "titleVi": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "descriptionVi": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "mediaAssetIds": { "type": "array" },
+        "audioUrl": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] }
+      },
+      "required": ["roomId", "titleVi", "isPublished", "verificationStatus"]
+    },
+    "Source": {
+      "title": "Source",
+      "description": "Authoritative historical reference citation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["school_document", "official_document", "photo", "interview", "book", "website", "archive", "other"] },
+        "organization": { "type": "string" },
+        "author": { "type": "string" },
+        "date": { "type": "string" },
+        "url": { "type": "string" },
+        "description": { "type": "string" },
+        "referenceCode": { "type": "string" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "type", "verificationStatus"]
+    },
+    "License": {
+      "title": "License",
+      "description": "Asset copyright, license and AI disclosure metadata",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "assetName": { "type": "string" },
+        "assetType": { "type": "string" },
+        "creator": { "type": "string" },
+        "licenseType": { "type": "string" },
+        "licenseUrl": { "type": "string" },
+        "sourceUrl": { "type": "string" },
+        "aiGenerated": { "type": "boolean" },
+        "aiTool": { "type": "string" },
+        "aiDisclosure": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["assetName", "licenseType", "aiGenerated"]
+    },
+    "MediaAsset": {
+      "title": "MediaAsset",
+      "description": "Uploaded media metadata stored in Firebase Storage",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fileName": { "type": "string" },
+        "storagePath": { "type": "string" },
+        "downloadUrl": { "type": "string" },
+        "type": { "type": "string", "enum": ["image", "panorama", "audio", "video", "pdf", "document", "3d_model"] },
+        "mimeType": { "type": "string" },
+        "size": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "duration": { "type": "number" },
+        "altTextVi": { "type": "string" },
+        "altTextEn": { "type": "string" },
+        "sourceIds": { "type": "array" },
+        "licenseIds": { "type": "array" },
+        "aiGenerated": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["fileName", "storagePath", "downloadUrl", "type"]
+    },
+    "Credit": {
+      "title": "Credit",
+      "description": "Contributor acknowledgment and project credit",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "organization": { "type": "string" },
+        "description": { "type": "string" },
+        "displayOrder": { "type": "number" },
+        "isPublished": { "type": "boolean" }
+      },
+      "required": ["name", "role", "isPublished", "displayOrder"]
+    },
+    "EditorialContent": {
+      "title": "EditorialContent",
+      "description": "Unified 2-layer editable content record (Layer 1 text + Layer 2 file attachments)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "contentId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "sceneObjectId": { "type": "string" },
+        "displayNameVi": { "type": "string" },
+        "category": { "type": "string" },
+        "textValues": { "type": "object" },
+        "attachments": { "type": "array" },
+        "verificationStatus": { "type": "string", "enum": ["unverified", "verified", "needs_review"] },
+        "isPublished": { "type": "boolean" },
+        "notes": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["contentId", "roomId", "displayNameVi", "isPublished"]
+    }
+  },
+  "firestore": {
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Registry of authorized administrators"
+    },
+    "/site_settings/{settingId}": {
+      "schema": "SiteSettings",
+      "description": "Global project settings"
+    },
+    "/rooms/{roomId}": {
+      "schema": "Room",
+      "description": "Permanent room and section metadata"
+    },
+    "/history_periods/{historyPeriodId}": {
+      "schema": "HistoryPeriod",
+      "description": "Historical development periods"
+    },
+    "/timeline_events/{timelineEventId}": {
+      "schema": "TimelineEvent",
+      "description": "1966-2026 Orbital timeline events"
+    },
+    "/development_milestones/{milestoneId}": {
+      "schema": "DevelopmentMilestone",
+      "description": "School development and facility milestones"
+    },
+    "/artifacts/{artifactId}": {
+      "schema": "Artifact",
+      "description": "Historical artifacts and relic documentation"
+    },
+    "/achievements/{achievementId}": {
+      "schema": "Achievement",
+      "description": "School awards, academic achievements, and honors"
+    },
+    "/people/{personId}": {
+      "schema": "Person",
+      "description": "Principals, teachers, staff, and notable alumni"
+    },
+    "/memories/{memoryId}": {
+      "schema": "Memory",
+      "description": "Remembrance articles, memories, and alumni stories"
+    },
+    "/news_events/{newsEventId}": {
+      "schema": "NewsEvent",
+      "description": "School news, 60-year anniversary announcements and activities"
+    },
+    "/digital_resources/{resourceId}": {
+      "schema": "DigitalResource",
+      "description": "Digital archives, podcasts, reference files"
+    },
+    "/hotspots/{hotspotId}": {
+      "schema": "Hotspot",
+      "description": "Exhibition room interactive hotspot content"
+    },
+    "/sources/{sourceId}": {
+      "schema": "Source",
+      "description": "Authoritative historical sources and citations"
+    },
+    "/licenses/{licenseId}": {
+      "schema": "License",
+      "description": "Asset copyright, licensing and AI transparency records"
+    },
+    "/media_assets/{mediaAssetId}": {
+      "schema": "MediaAsset",
+      "description": "Media file metadata in Firebase Storage"
+    },
+    "/credits/{creditId}": {
+      "schema": "Credit",
+      "description": "Project contributors and school acknowledgments"
+    },
+    "/editorial_contents/{contentId}": {
+      "schema": "EditorialContent",
+      "description": "Direct editable 2-layer content records across the museum"
+    }
+  }
+}

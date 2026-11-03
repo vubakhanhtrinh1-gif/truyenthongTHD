@@ -1,0 +1,6 @@
+{
+  "name": "COSMIC HERITAGE – DẤU ẤN 60 NĂM",
+  "description": "Nền tảng Quản trị & Cơ sở dữ liệu Di sản số Cosmic Heritage – Dấu ấn 60 năm Trường THPT A Trần Hưng Đạo (1966–2026).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
