@@ -74,28 +74,16 @@ export function PhotoDetailModal({
           </button>
         </div>
 
-        {/* Enlarged Photograph Display */}
-        <div className="rounded-xl overflow-hidden border-2 border-[#CBA45B]/40 bg-[#F4EDE0] shadow-inner">
-          {item.customUrl ? (
+        {/* Enlarged Photograph Display (Only render when real photo exists) */}
+        {item.customUrl && (
+          <div className="rounded-xl overflow-hidden border-2 border-[#CBA45B]/40 bg-[#F4EDE0] shadow-inner">
             <img
               src={item.customUrl}
               alt={item.title}
               className="w-full max-h-96 object-contain bg-[#172030]"
             />
-          ) : (
-            <div className="p-8 sm:p-12 text-center space-y-3 bg-[#FAF5EA]">
-              <div className="w-16 h-16 mx-auto rounded-full bg-[#CBA45B]/20 flex items-center justify-center text-[#9C2A2A]">
-                {isTeacher ? <GraduationCap className="w-8 h-8" /> : <Sparkles className="w-8 h-8" />}
-              </div>
-              <h4 className="text-sm font-serif font-bold text-[#9C2A2A]">
-                {isTeacher ? teacher?.teacherName || teacher?.title : moment?.title}
-              </h4>
-              <p className="text-xs text-zinc-500 italic max-w-md mx-auto">
-                Tư liệu hình ảnh gốc lưu trữ của Trường THPT A Trần Hưng Đạo. Người quản trị có thể tải lên ảnh chất lượng cao thông qua hệ thống CMD Admin.
-              </p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Structured Metadata Fields */}
         <div className="space-y-4">

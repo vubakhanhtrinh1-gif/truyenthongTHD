@@ -266,7 +266,7 @@ export const DevelopmentScene: React.FC<Props> = ({
       alpha: false,
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -560,12 +560,6 @@ export const DevelopmentScene: React.FC<Props> = ({
               {lang === 'vi' ? 'Trục thời gian' : 'Timeline'}
             </button>
             <button
-              onClick={() => teleportToArea('end_photos')}
-              className="px-2.5 py-1 text-[11px] rounded-lg text-amber-300 font-bold bg-[#d4af37]/20 hover:bg-[#d4af37]/30 border border-[#d4af37]/60 transition-colors cursor-pointer"
-            >
-              🖼️ {lang === 'vi' ? '3 Khung ảnh cuối' : '3 End Frames'}
-            </button>
-            <button
               onClick={() => teleportToArea('era3')}
               className="px-2.5 py-1 text-[11px] rounded-lg text-cyan-300 font-bold hover:bg-white/10 transition-colors cursor-pointer"
             >
@@ -573,32 +567,9 @@ export const DevelopmentScene: React.FC<Props> = ({
             </button>
           </div>
 
-          {/* Audio Guide Narration Button */}
-          <button
-            onClick={toggleNarration}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border backdrop-blur-md transition-all cursor-pointer text-xs font-serif ${
-              isNarrating
-                ? 'bg-amber-500/30 border-amber-400 text-amber-300 animate-pulse shadow-lg shadow-amber-500/20'
-                : 'bg-[#142238]/85 border-[#b8924b]/40 text-[#ffd988] hover:bg-white/10'
-            }`}
-            title={lang === 'vi' ? 'Nghe thuyết minh hướng dẫn tự động' : 'Listen to audio narration guide'}
-          >
-            <Headphones className={`w-3.5 h-3.5 ${isNarrating ? 'text-amber-300' : 'text-[#ffd988]'}`} />
-            <span className="hidden sm:inline font-medium">
-              {lang === 'vi'
-                ? isNarrating
-                  ? 'Đang thuyết minh...'
-                  : 'Thuyết minh Khu 2'
-                : isNarrating
-                ? 'Narrating...'
-                : 'Audio Guide'}
-            </span>
-          </button>
-
           {/* Language Switcher */}
           <button
             onClick={() => {
-              developmentAudio.playClick();
               setLang(lang === 'vi' ? 'en' : 'vi');
             }}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#142238]/85 border border-[#b8924b]/40 text-[#ffd988] hover:bg-white/10 transition-colors cursor-pointer text-xs font-mono font-bold"
@@ -606,15 +577,6 @@ export const DevelopmentScene: React.FC<Props> = ({
           >
             <Languages className="w-3.5 h-3.5" />
             <span>{lang === 'vi' ? 'EN' : 'VI'}</span>
-          </button>
-
-          {/* Sound Ambient Toggle */}
-          <button
-            onClick={toggleAudio}
-            className="p-2 rounded-xl bg-[#142238]/85 border border-[#b8924b]/40 text-[#d9bd79] hover:bg-white/10 transition-colors cursor-pointer"
-            title={isMuted ? 'Bật âm thanh không gian' : 'Tắt âm thanh'}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-zinc-500" /> : <Volume2 className="w-4 h-4 text-[#ffd988]" />}
           </button>
         </div>
       </div>
@@ -744,33 +706,21 @@ export const DevelopmentScene: React.FC<Props> = ({
                 ))}
               </div>
 
-              {/* Artwork Canvas / Image Preview */}
-              <div className="p-4 sm:p-6 rounded-2xl bg-black/60 border-2 border-[#d4af37]/50 shadow-inner flex flex-col items-center justify-center text-center space-y-3 relative overflow-hidden">
-                {painting.customUrl ? (
+              {/* Artwork Canvas / Image Preview (Displayed strictly when uploaded, zero fake placeholders) */}
+              {painting.customUrl && (
+                <div className="p-4 sm:p-6 rounded-2xl bg-black/60 border-2 border-[#d4af37]/50 shadow-inner flex flex-col items-center justify-center text-center space-y-2 relative overflow-hidden">
                   <img
                     src={painting.customUrl}
                     alt={painting.titleVi}
                     className="w-full max-h-[380px] object-contain rounded-xl border border-[#d4af37]/40 shadow-2xl"
                   />
-                ) : (
-                  <div className="w-full py-12 px-4 rounded-xl border border-dashed border-[#d4af37]/50 bg-gradient-to-b from-[#1c2940]/60 to-[#0e1726]/80 flex flex-col items-center justify-center space-y-3">
-                    <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#ffd988]">
-                      <ImageIcon className="w-8 h-8 text-[#ffd988]" />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="font-serif font-bold text-base text-white">
-                        Khung Ảnh Tư Liệu Đức Thánh Trần #{painting.order}
-                      </h4>
-                      <p className="text-xs text-[#ffd988] font-mono">
-                        [ BẠN TRỰC TIẾP TẢI ẢNH ĐỨC THÁNH TRẦN TỪ CMD ]
-                      </p>
-                      <p className="text-[11px] text-zinc-400 max-w-md mx-auto font-sans">
-                        Hệ thống đã tạo sẵn vị trí lưu trữ và kết nối đồng bộ cơ sở dữ liệu (development.central_pillar_painting_{painting.order}). Bạn là người trực tiếp tải lên tệp ảnh qua mục Quản lý Nội dung (CMD).
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  {painting.captionVi && (
+                    <span className="text-xs font-serif text-[#ffd988] italic">
+                      {painting.captionVi}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Detailed Description */}
               <div className="p-5 rounded-2xl bg-black/40 border border-zinc-800 text-sm leading-relaxed text-zinc-200 space-y-2.5 font-serif">
@@ -884,33 +834,21 @@ export const DevelopmentScene: React.FC<Props> = ({
                 ))}
               </div>
 
-              {/* Artwork Canvas / Image Preview */}
-              <div className="p-4 sm:p-6 rounded-2xl bg-black/60 border-2 border-[#d4af37]/50 shadow-inner flex flex-col items-center justify-center text-center space-y-3 relative overflow-hidden">
-                {photo.customUrl ? (
+              {/* Artwork Canvas / Image Preview (Displayed strictly when uploaded, zero fake placeholders) */}
+              {photo.customUrl && (
+                <div className="p-4 sm:p-6 rounded-2xl bg-black/60 border-2 border-[#d4af37]/50 shadow-inner flex flex-col items-center justify-center text-center space-y-2 relative overflow-hidden">
                   <img
                     src={photo.customUrl}
                     alt={photo.titleVi}
                     className="w-full max-h-[380px] object-contain rounded-xl border border-[#d4af37]/40 shadow-2xl"
                   />
-                ) : (
-                  <div className="w-full py-12 px-4 rounded-xl border border-dashed border-[#d4af37]/50 bg-gradient-to-b from-[#1c2940]/60 to-[#0e1726]/80 flex flex-col items-center justify-center space-y-3">
-                    <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#ffd988]">
-                      <ImageIcon className="w-8 h-8 text-[#ffd988]" />
-                    </div>
-                    <div className="space-y-1">
-                      <h4 className="font-serif font-bold text-base text-white">
-                        Khung Ảnh Tư Liệu Cuối Phòng #{photo.order}
-                      </h4>
-                      <p className="text-xs text-[#ffd988] font-mono">
-                        [ BẠN TRỰC TIẾP TẢI ẢNH LÊN TỪ CMD ]
-                      </p>
-                      <p className="text-[11px] text-zinc-400 max-w-md mx-auto font-sans">
-                        Hệ thống đã tạo sẵn vị trí lưu trữ và kết nối đồng bộ cơ sở dữ liệu (development.end_wall_photo_{photo.order}). Bạn là người trực tiếp tải lên tệp ảnh tư liệu qua mục Quản lý Nội dung (CMD).
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  {photo.captionVi && (
+                    <span className="text-xs font-serif text-[#ffd988] italic">
+                      {photo.captionVi}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Detailed Description */}
               <div className="p-5 rounded-2xl bg-black/40 border border-zinc-800 text-sm leading-relaxed text-zinc-200 space-y-2.5 font-serif">
@@ -1066,55 +1004,21 @@ export const DevelopmentScene: React.FC<Props> = ({
                 </button>
               </div>
 
-              {/* 3 Archival Photo Slots */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-mono text-[#ffd988]">
-                  <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <ImageIcon className="w-3.5 h-3.5" />
-                    BỘ 3 HÌNH ẢNH TƯ LIỆU ĐÍNH KÈM (LƯU TRONG CMD)
-                  </span>
-                  <span className="text-zinc-400 text-[11px]">Người quản trị sẽ thêm sau qua CMD</span>
+              {/* Single Archival Photo if uploaded - strictly 1 photo only, zero fake placeholders */}
+              {currentAward.customUrl && (
+                <div className="p-3 sm:p-4 rounded-2xl bg-black/60 border border-[#d4af37]/50 flex flex-col items-center justify-center space-y-2">
+                  <img
+                    src={currentAward.customUrl}
+                    alt={currentAward.titleVi}
+                    className="w-full max-h-[320px] object-contain rounded-xl border border-[#d4af37]/30 shadow-xl"
+                  />
+                  {currentAward.captionVi && (
+                    <span className="text-[11px] font-serif text-[#ffd988] italic text-center">
+                      {currentAward.captionVi}
+                    </span>
+                  )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[1, 2, 3].map((slotIdx) => (
-                    <div
-                      key={slotIdx}
-                      className="p-3.5 rounded-2xl bg-black/50 border border-[#d4af37]/40 hover:border-[#ffd988] transition-all flex flex-col items-center text-center space-y-2.5 relative overflow-hidden group"
-                    >
-                      {currentAward.customUrl && slotIdx === 1 ? (
-                        <img
-                          src={currentAward.customUrl}
-                          alt={`${currentAward.titleVi} - Hình ${slotIdx}`}
-                          className="w-full h-32 object-cover rounded-xl border border-[#d4af37]/30"
-                        />
-                      ) : (
-                        <div className="w-full h-32 rounded-xl bg-gradient-to-b from-[#1c2940]/50 to-[#0e1726]/80 border border-dashed border-[#d4af37]/40 flex flex-col items-center justify-center p-2 space-y-1.5">
-                          <div className="w-9 h-9 rounded-xl bg-[#d4af37]/15 border border-[#d4af37]/40 flex items-center justify-center text-[#ffd988]">
-                            <ImageIcon className="w-4 h-4" />
-                          </div>
-                          <span className="text-[11px] font-serif font-bold text-white">
-                            Hình ảnh tư liệu {slotIdx}
-                          </span>
-                          <span className="text-[9px] font-mono text-[#ffd988] uppercase">
-                            [ Đã lưu CMD • Thêm sau ]
-                          </span>
-                        </div>
-                      )}
-                      <div className="text-[10px] text-zinc-400 font-sans">
-                        {isLabor && slotIdx === 1 && 'Huân chương Lao động hạng Nhất (2001)'}
-                        {isLabor && slotIdx === 2 && 'Huân chương Lao động hạng Nhì (1998)'}
-                        {isLabor && slotIdx === 3 && 'Huân chương Lao động hạng Ba (1995)'}
-                        {isMinistry && slotIdx === 1 && 'Cờ thi đua của Chính phủ trao tặng'}
-                        {isMinistry && slotIdx === 2 && 'Bằng khen Bộ Giáo dục & Đào tạo'}
-                        {isMinistry && slotIdx === 3 && 'Cờ thi đua & Bằng khen UBND Tỉnh'}
-                        {isPrimeMinister && slotIdx === 1 && 'Bằng khen Thủ tướng Chính phủ (2006)'}
-                        {isPrimeMinister && slotIdx === 2 && 'Quyết định tặng thưởng của Thủ tướng'}
-                        {isPrimeMinister && slotIdx === 3 && 'Lễ đón nhận Bằng khen Thủ tướng'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
 
               {/* Official Lead Narrative (Lời dẫn trang trọng) */}
               <div className="p-5 rounded-2xl bg-black/40 border border-[#d4af37]/30 text-sm leading-relaxed text-zinc-200 space-y-2.5 font-serif">

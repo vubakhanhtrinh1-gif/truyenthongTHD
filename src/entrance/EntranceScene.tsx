@@ -87,7 +87,7 @@ export const EntranceScene: React.FC<Props> = ({ onEnterMuseum, onOpenCmd }) => 
       alpha: false,
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -332,25 +332,8 @@ export const EntranceScene: React.FC<Props> = ({ onEnterMuseum, onOpenCmd }) => 
           </div>
         </div>
 
-        {/* Right Controls: Audio Mute & Discreet Help */}
+        {/* Right Controls */}
         <div className="flex items-center gap-3 pointer-events-auto">
-          <button
-            onClick={toggleAudio}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#141B30]/80 hover:bg-[#141B30] border border-[#C7A15A]/40 text-[#F3ECDD] hover:text-[#C7A15A] transition-all backdrop-blur-md text-xs cursor-pointer shadow-lg"
-            title={isMuted ? 'Bật âm thanh không gian' : 'Tắt âm thanh'}
-          >
-            {isMuted ? (
-              <>
-                <VolumeX className="w-4 h-4 text-zinc-400" />
-                <span className="text-[11px] font-mono text-zinc-400">ÂM THANH: TẮT</span>
-              </>
-            ) : (
-              <>
-                <Volume2 className="w-4 h-4 text-[#C7A15A]" />
-                <span className="text-[11px] font-mono text-[#C7A15A]">ÂM THANH: BẬT</span>
-              </>
-            )}
-          </button>
         </div>
       </div>
 

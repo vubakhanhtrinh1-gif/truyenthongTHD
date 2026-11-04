@@ -9,6 +9,13 @@ import {
 } from './components/HistoryArchitecture';
 import { ZONE_1_HISTORY_CONTENT, SIX_ZONES_SUMMARY } from './config/historyContentData';
 import { useHistoryContent } from '../../services/historyContentService';
+import { useRoomEditorialMap } from '../../services/dynamicContentService';
+import {
+  updateMentorPortraitTexture,
+  updateParchmentDocumentTexture,
+  updateEvacuationMapTexture,
+  updateFoundingClassPhotoTexture,
+} from './textures/HistoryProceduralTextures';
 import { historyAudio } from './audio/HistoryAudio';
 import {
   Volume2,
@@ -152,7 +159,7 @@ export const HistoryScene: React.FC<Props> = ({
     // 3. Renderer setup
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -354,32 +361,9 @@ export const HistoryScene: React.FC<Props> = ({
   }, []);
 
   const content = useHistoryContent();
+  const { itemsMap: roomItemsMap } = useRoomEditorialMap('history');
 
-  // Live dynamic update of mentor portrait textures when images are added via CMD Admin
-  useEffect(() => {
-    if (!elementsRef.current) return;
-    const { mentor1Mesh, mentor2Mesh } = elementsRef.current;
-    const leader1Img = (content.foundationPeople?.leaders?.[0] as any)?.imageUrl;
-    const leader2Img = (content.foundationPeople?.leaders?.[1] as any)?.imageUrl;
 
-    if (mentor1Mesh && leader1Img) {
-      new THREE.TextureLoader().load(leader1Img, (tex) => {
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        (mentor1Mesh.material as THREE.MeshStandardMaterial).map = tex;
-        (mentor1Mesh.material as THREE.MeshStandardMaterial).needsUpdate = true;
-      });
-    }
-
-    if (mentor2Mesh && leader2Img) {
-      new THREE.TextureLoader().load(leader2Img, (tex) => {
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        (mentor2Mesh.material as THREE.MeshStandardMaterial).map = tex;
-        (mentor2Mesh.material as THREE.MeshStandardMaterial).needsUpdate = true;
-      });
-    }
-  }, [content.foundationPeople]);
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#faf5ea] select-none text-[#241306]">
@@ -463,13 +447,7 @@ export const HistoryScene: React.FC<Props> = ({
             <span className="hidden sm:inline">6 Phân khu</span>
           </button>
 
-          <button
-            onClick={toggleAudio}
-            className="p-1.5 sm:p-2 rounded-xl bg-[#fffdf8]/90 hover:bg-white border-2 border-[#d4af37]/70 text-[#3d230e] hover:text-[#b8860b] backdrop-blur-md transition-all cursor-pointer shadow-lg"
-            title={isMuted ? 'Bật âm thanh không gian' : 'Tắt âm thanh'}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-zinc-500" /> : <Volume2 className="w-4 h-4 text-[#b8860b]" />}
-          </button>
+
 
           {onOpenCmd && (
             <button
@@ -770,18 +748,12 @@ export const HistoryScene: React.FC<Props> = ({
                         return (
                           <div key={i} className="p-3 rounded-2xl bg-white border-2 border-[#e4cca0] space-y-2 shadow-sm flex flex-col justify-between hover:border-[#d4af37] transition-all">
                             <div className="flex gap-3 items-center">
-                              {customImg ? (
+                              {customImg && (
                                 <img
                                   src={customImg}
                                   alt={leader.name}
                                   className="w-16 h-20 object-cover rounded-xl border border-[#d4af37] shadow-sm flex-shrink-0"
                                 />
-                              ) : (
-                                <div className="w-16 h-20 rounded-xl bg-gradient-to-b from-[#1b2336] to-[#0e1422] border-2 border-[#d4af37] flex flex-col items-center justify-center p-1 text-center flex-shrink-0 shadow-inner">
-                                  <span className="text-amber-400 text-base">✦</span>
-                                  <span className="text-[8px] text-[#ffd988] font-mono font-bold leading-tight mt-0.5 uppercase">Ảnh Lưu Trữ</span>
-                                  <span className="text-[7.5px] text-[#a6b8db] font-sans leading-tight mt-0.5">Thêm qua CMD</span>
-                                </div>
                               )}
                               <div className="space-y-0.5 min-w-0">
                                 <span className="text-[9.5px] text-[#8a5b1d] font-mono font-bold block uppercase tracking-wide">

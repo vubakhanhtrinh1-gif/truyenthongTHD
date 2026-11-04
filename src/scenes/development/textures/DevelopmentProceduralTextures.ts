@@ -5,6 +5,12 @@
  */
 
 import * as THREE from 'three';
+import {
+  loadAndCacheImage,
+  getCachedImage,
+  drawImageContain,
+  markTextureNeedsUpdate,
+} from '../../../services/museumTextureService';
 
 /**
  * Refined Muted Warm Natural Oak Parquet Gallery Floor Texture
@@ -795,34 +801,7 @@ export function createHichTuongSiScrollTexture(): THREE.CanvasTexture {
  * If not yet uploaded, renders a dignified, elegant dark bronze/navy framed placeholder
  * strictly without procedural statues, fake characters, or broken images.
  */
-export function createDucThanhTranFrameTexture(customUrl?: string): THREE.Texture {
-  if (customUrl) {
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load(
-      customUrl,
-      (tex) => {
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.generateMipmaps = true;
-        tex.minFilter = THREE.LinearMipmapLinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        tex.needsUpdate = true;
-      },
-      undefined,
-      (err) => {
-        console.warn('Could not load Duc Thanh Tran image, using designed placeholder:', err);
-      }
-    );
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.generateMipmaps = true;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    return texture;
-  }
-
-  // Designed Empty State: Dignified museum portrait mat with authentic inscriptions
-  const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 1400; // Elegant vertical portrait proportion (approx 1:1.37)
+function drawDucThanhTranCanvas(canvas: HTMLCanvasElement, img: HTMLImageElement | null): void {
   const ctx = canvas.getContext('2d')!;
 
   // Deep dark navy and obsidian gradient mat background
@@ -834,7 +813,7 @@ export function createDucThanhTranFrameTexture(customUrl?: string): THREE.Textur
   ctx.fillRect(0, 0, 1024, 1400);
 
   // Fine metallic grain
-  for (let i = 0; i < 5000; i++) {
+  for (let i = 0; i < 3000; i++) {
     const x = Math.random() * 1024;
     const y = Math.random() * 1400;
     const alpha = Math.random() * 0.04;
@@ -873,40 +852,51 @@ export function createDucThanhTranFrameTexture(customUrl?: string): THREE.Textur
   // Main Heading: ĐỨC THÁNH TRẦN
   ctx.fillStyle = '#FFD988';
   ctx.font = 'bold 54px "Cinzel", "Times New Roman", serif';
-  ctx.letterSpacing = '4px';
   ctx.fillText('ĐỨC THÁNH TRẦN', 512, 270);
 
   ctx.fillStyle = '#D4AF62';
   ctx.font = 'bold 30px "Times New Roman", serif';
-  ctx.letterSpacing = '2px';
   ctx.fillText('HƯNG ĐẠO ĐẠI VƯƠNG TRẦN QUỐC TUẤN', 512, 330);
 
   ctx.fillStyle = '#9CA3AF';
   ctx.font = 'italic 24px monospace';
   ctx.fillText('(1228 — 1300)', 512, 380);
 
-  // Subtle central placeholder frame box
-  ctx.fillStyle = 'rgba(10, 15, 28, 0.85)';
-  ctx.fillRect(160, 440, 704, 520);
-  ctx.strokeStyle = 'rgba(212, 175, 98, 0.4)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(160, 440, 704, 520);
+  // Photo Display Area Box (160, 440, 704, 520)
+  const boxX = 160;
+  const boxY = 440;
+  const boxW = 704;
+  const boxH = 520;
 
-  // Portrait iconography
-  ctx.fillStyle = 'rgba(212, 175, 98, 0.7)';
-  ctx.font = '64px serif';
-  ctx.fillText('⚜', 512, 640);
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.fillStyle = '#0a0f1c';
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+    ctx.strokeStyle = '#D4AF62';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
 
-  ctx.fillStyle = '#F3ECDD';
-  ctx.font = 'bold 24px "Times New Roman", serif';
-  ctx.fillText('ẢNH TƯ LIỆU CHÍNH THỨC', 512, 730);
+    drawImageContain(ctx, img, boxX + 8, boxY + 8, boxW - 16, boxH - 16, 8);
+  } else {
+    ctx.fillStyle = 'rgba(10, 15, 28, 0.85)';
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+    ctx.strokeStyle = 'rgba(212, 175, 98, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
 
-  ctx.fillStyle = '#94A3B8';
-  ctx.font = 'italic 20px serif';
-  ctx.fillText('Ảnh tư liệu chính thức sẽ được cập nhật', 512, 790);
-  ctx.fillText('qua hệ thống quản trị CMD.', 512, 825);
+    ctx.fillStyle = 'rgba(212, 175, 98, 0.7)';
+    ctx.font = '64px serif';
+    ctx.fillText('⚜', 512, 640);
 
-  // Lower Section: Verified Physical Statue Specifications (as accurate textual note)
+    ctx.fillStyle = '#F3ECDD';
+    ctx.font = 'bold 24px "Times New Roman", serif';
+    ctx.fillText('ẢNH TƯ LIỆU CHÍNH THỨC', 512, 730);
+
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = 'italic 20px serif';
+    ctx.fillText('Cập nhật trực tiếp qua hệ thống quản trị CMD', 512, 790);
+  }
+
+  // Lower Section: Verified Physical Statue Specifications
   ctx.fillStyle = 'rgba(20, 27, 48, 0.9)';
   ctx.fillRect(100, 1020, 824, 270);
   ctx.strokeStyle = 'rgba(212, 175, 98, 0.5)';
@@ -915,25 +905,42 @@ export function createDucThanhTranFrameTexture(customUrl?: string): THREE.Textur
 
   ctx.fillStyle = '#FFD988';
   ctx.font = 'bold 20px "Times New Roman", serif';
-  ctx.letterSpacing = '2px';
   ctx.fillText('THÔNG SỐ TƯỢNG ĐỒNG KHUÔN VIÊN TRƯỜNG', 512, 1065);
 
   ctx.fillStyle = '#E2E8F0';
   ctx.font = '19px "Times New Roman", serif';
   ctx.textAlign = 'left';
   ctx.fillText('• Tượng đồng nguyên khối • Chiều cao: 1,28 m • Trọng lượng: 212 kg', 140, 1115);
-  ctx.fillText('• Đúc tại làng nghề Tống Xá, Ý Yên • Thiết kế: Họa sĩ Vương Duy Biên', 140, 1155);
-  ctx.fillText('• Khánh thành trang trọng ngày 28/08/2006 dịp kỷ niệm 40 năm thành lập trường', 140, 1195);
+  ctx.fillText('• Đúc bằng đồng đỏ nguyên chất, khánh thành trang nghiêm tại sân trường', 140, 1160);
+  ctx.fillText('• Biểu tượng của ý chí quật cường, lòng yêu nước & truyền thống hiếu học', 140, 1205);
+  ctx.fillStyle = '#94A3B8';
+  ctx.font = 'italic 16px "Times New Roman", serif';
+  ctx.fillText('✦ Nhấp hoặc nhấn phím E để xem tư liệu chi tiết về Đức Thánh Trần ✦', 140, 1255);
+}
 
-  ctx.fillStyle = '#F59E0B';
-  ctx.font = 'italic 18px serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('« Bệ hạ chém đầu tôi trước rồi hãy hàng! »', 512, 1250);
+export function createDucThanhTranFrameTexture(customUrl?: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1400;
+
+  const cachedImg = getCachedImage(customUrl);
+  drawDucThanhTranCanvas(canvas, cachedImg);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+
+  if (customUrl && !cachedImg) {
+    loadAndCacheImage(customUrl, (img) => {
+      drawDucThanhTranCanvas(canvas, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+
   return texture;
 }
+
 
 /**
  * Procedural texture for Important Medal Exhibition Card
@@ -1398,22 +1405,13 @@ export function createHonorsAwardCardTexture(
  * Procedural Archival Photo Canvas Texture for Far End Wall (3 Frames at the North Wall)
  * Designed for user to upload photos directly from CMD Admin.
  */
-export function createEndWallPhotoTexture(
+function drawEndWallPhotoCanvas(
+  canvas: HTMLCanvasElement,
   order: number,
   titleVi: string,
   captionVi: string,
-  customUrl?: string
-): THREE.Texture {
-  if (customUrl) {
-    const loader = new THREE.TextureLoader();
-    const tex = loader.load(customUrl);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
-  }
-
-  const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 768;
+  img: HTMLImageElement | null
+): void {
   const ctx = canvas.getContext('2d')!;
 
   // 1. Deep Museum Charcoal & Navy Base
@@ -1457,35 +1455,45 @@ export function createEndWallPhotoTexture(
     ctx.fill();
   });
 
-  // 3. Central Photo Display Area / Placeholder Box
+  // 3. Central Photo Display Area Box
   const boxX = 64;
   const boxY = 70;
   const boxW = 896;
   const boxH = 460;
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-  ctx.fillRect(boxX, boxY, boxW, boxH);
-  ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(boxX, boxY, boxW, boxH);
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.fillStyle = '#0a0f1c';
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
 
-  // Icon / Camera motif
-  ctx.fillStyle = '#D4AF37';
-  ctx.font = '72px serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('📷', 512, boxY + 160);
+    drawImageContain(ctx, img, boxX + 8, boxY + 8, boxW - 16, boxH - 16, 6);
+  } else {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
 
-  ctx.fillStyle = '#FFD988';
-  ctx.font = 'bold 30px "Cinzel", "Times New Roman", serif';
-  ctx.fillText(`KHUNG ẢNH TƯ LIỆU CUỐI PHÒNG ${order}`, 512, boxY + 235);
+    // Icon / Camera motif
+    ctx.fillStyle = '#D4AF37';
+    ctx.font = '72px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📷', 512, boxY + 160);
 
-  ctx.fillStyle = '#94A3B8';
-  ctx.font = 'bold 18px monospace';
-  ctx.fillText('[ BẠN TRỰC TIẾP TẢI ẢNH LÊN TỪ CMD ]', 512, boxY + 295);
+    ctx.fillStyle = '#FFD988';
+    ctx.font = 'bold 30px "Cinzel", "Times New Roman", serif';
+    ctx.fillText(`KHUNG ẢNH TƯ LIỆU CUỐI PHÒNG ${order}`, 512, boxY + 235);
 
-  ctx.fillStyle = '#CBD5E1';
-  ctx.font = 'italic 16px "Times New Roman", serif';
-  ctx.fillText('Vị trí lưu trữ đã sẵn sàng trong QUẢN LÝ NỘI DUNG (Phân khu 05)', 512, boxY + 345);
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText('[ CHƯA CÓ ẢNH TƯ LIỆU • CẬP NHẬT QUA CMD ADMIN ]', 512, boxY + 295);
+
+    ctx.fillStyle = '#CBD5E1';
+    ctx.font = 'italic 16px "Times New Roman", serif';
+    ctx.fillText('Vị trí lưu trữ đã sẵn sàng trong QUẢN LÝ NỘI DUNG', 512, boxY + 345);
+  }
 
   // 4. Bottom Title & Information Plaque
   const plqY = 555;
@@ -1508,9 +1516,33 @@ export function createEndWallPhotoTexture(
   ctx.fillStyle = '#94A3B8';
   ctx.font = 'bold 13px monospace';
   ctx.fillText('[ NHẤP HOẶC NHẤN PHÍM E ĐỂ XEM HỒ SƠ & TẢI ẢNH ]', 512, plqY + 135);
+}
+
+export function createEndWallPhotoTexture(
+  order: number,
+  titleVi: string,
+  captionVi: string,
+  customUrl?: string
+): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 768;
+
+  const cachedImg = getCachedImage(customUrl);
+  drawEndWallPhotoCanvas(canvas, order, titleVi, captionVi, cachedImg);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+
+  if (customUrl && !cachedImg) {
+    loadAndCacheImage(customUrl, (img) => {
+      drawEndWallPhotoCanvas(canvas, order, titleVi, captionVi, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+
   return texture;
 }
 

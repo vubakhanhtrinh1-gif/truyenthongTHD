@@ -14,6 +14,7 @@ import {
   createSide4FiveRelocationsTexture,
   createFoundingIntroBoardTexture,
   createMentorPortraitTexture,
+  createFoundingClassPhotoTexture,
 } from '../textures/HistoryProceduralTextures';
 
 export interface InteractiveExhibitItem {
@@ -54,6 +55,11 @@ export interface HistorySceneElements {
   zoneSpotlights: THREE.SpotLight[];
   mentor1Mesh?: THREE.Mesh;
   mentor2Mesh?: THREE.Mesh;
+  docPaperMesh?: THREE.Mesh;
+  mapBoardMesh?: THREE.Mesh;
+  classPhotoMesh?: THREE.Mesh;
+  steleMesh?: THREE.Mesh;
+  introBoardMesh?: THREE.Mesh;
 }
 
 export function buildHistoryRoomArchitecture(
@@ -65,6 +71,11 @@ export function buildHistoryRoomArchitecture(
   const zoneSpotlights: THREE.SpotLight[] = [];
   let mentor1Mesh: THREE.Mesh | undefined;
   let mentor2Mesh: THREE.Mesh | undefined;
+  let docPaperMesh: THREE.Mesh | undefined;
+  let mapBoardMesh: THREE.Mesh | undefined;
+  let classPhotoMesh: THREE.Mesh | undefined;
+  let steleMesh: THREE.Mesh | undefined;
+  let introBoardMesh: THREE.Mesh | undefined;
 
   const { width, length, height } = historyRoomConfig.dimensions;
 
@@ -408,6 +419,7 @@ export function buildHistoryRoomArchitecture(
   docPaper.rotation.y = Math.PI / 2;
   masterGroup.add(docPaper);
   interactiveMeshes.push(docPaper);
+  docPaperMesh = docPaper;
 
   interactiveExhibits.push({
     id: 'context_document_charter',
@@ -555,6 +567,7 @@ export function buildHistoryRoomArchitecture(
   mapBoard.rotation.z = Math.PI / 10;
   masterGroup.add(mapBoard);
   interactiveMeshes.push(mapBoard);
+  mapBoardMesh = mapBoard;
 
   interactiveExhibits.push({
     id: 'wartime_evacuation_map',
@@ -610,7 +623,7 @@ export function buildHistoryRoomArchitecture(
 
   // High-res Martyrs Texture Mesh
   const martyrsTex = createMartyrsMemorialTexture();
-  const steleMesh = new THREE.Mesh(
+  steleMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(2.7, 2.1),
     new THREE.MeshStandardMaterial({
       map: martyrsTex,
@@ -679,7 +692,7 @@ export function buildHistoryRoomArchitecture(
   masterGroup.add(introBrassTrim);
 
   const introBoardTex = createFoundingIntroBoardTexture();
-  const introBoardMesh = new THREE.Mesh(
+  introBoardMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(1.15, 1.45),
     new THREE.MeshStandardMaterial({ map: introBoardTex, roughness: 0.35 })
   );
@@ -819,24 +832,7 @@ export function buildHistoryRoomArchitecture(
   masterGroup.add(genPlaque);
 
   // Panorama Class Photo Frame
-  const classPhotoCanvas = document.createElement('canvas');
-  classPhotoCanvas.width = 1024;
-  classPhotoCanvas.height = 512;
-  const cCtx = classPhotoCanvas.getContext('2d')!;
-  cCtx.fillStyle = '#141a29';
-  cCtx.fillRect(0, 0, 1024, 512);
-  cCtx.strokeStyle = '#c7a15a';
-  cCtx.lineWidth = 4;
-  cCtx.strokeRect(16, 16, 992, 480);
-  cCtx.fillStyle = '#ffd988';
-  cCtx.textAlign = 'center';
-  cCtx.font = 'bold 32px serif';
-  cCtx.fillText('ẢNH KỶ YẾU CÁC KHÓA HỌC SINH ĐẦU TIÊN (1966–1975)', 512, 240);
-  cCtx.fillStyle = '#a6b4cc';
-  cCtx.font = '16px monospace';
-  cCtx.fillText('{{DB: history | early_class_images | image/jpg_gallery | high}}', 512, 290);
-
-  const classPhotoTex = new THREE.CanvasTexture(classPhotoCanvas);
+  const classPhotoTex = createFoundingClassPhotoTexture();
   const classPhotoFrame = new THREE.Mesh(
     new THREE.BoxGeometry(0.1, 1.8, 3.2),
     materials.walnut
@@ -852,6 +848,7 @@ export function buildHistoryRoomArchitecture(
   classPhoto.rotation.y = -Math.PI / 2;
   masterGroup.add(classPhoto);
   interactiveMeshes.push(classPhoto);
+  classPhotoMesh = classPhoto;
 
   interactiveExhibits.push({
     id: 'early_generations_gallery',
@@ -1037,5 +1034,10 @@ export function buildHistoryRoomArchitecture(
     zoneSpotlights,
     mentor1Mesh,
     mentor2Mesh,
+    docPaperMesh,
+    mapBoardMesh,
+    classPhotoMesh,
+    steleMesh,
+    introBoardMesh,
   };
 }

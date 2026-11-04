@@ -42,6 +42,7 @@ export function GenericCrudSection<
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingItem, setDeletingItem] = useState<T | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -83,11 +84,19 @@ export function GenericCrudSection<
   const handleDelete = async () => {
     if (!deletingItem) return;
     setIsDeleting(true);
+    setDeleteError(null);
     try {
       await repository.delete(deletingItem.id);
-      await loadData();
+      // Optimistic update
+      setItems((prev) => prev.filter((i) => i.id !== deletingItem.id));
       setIsDeleteOpen(false);
       setDeletingItem(null);
+      await loadData();
+    } catch (err: any) {
+      console.error('Lỗi khi xóa tài liệu:', err);
+      setDeleteError(
+        err.message || 'Không thể xóa tài liệu này khỏi cơ sở dữ liệu. Vui lòng kiểm tra quyền quản trị.'
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -152,6 +161,7 @@ export function GenericCrudSection<
           }}
           onDelete={(item) => {
             setDeletingItem(item);
+            setDeleteError(null);
             setIsDeleteOpen(true);
           }}
           onTogglePublish={handleTogglePublish}
@@ -186,10 +196,12 @@ export function GenericCrudSection<
           isOpen={isDeleteOpen}
           title={(deletingItem as any).titleVi || (deletingItem as any).name || (deletingItem as any).nameVi || deletingItem.id}
           itemDescription={`Mã định danh ID: ${deletingItem.id}`}
+          errorMessage={deleteError}
           onConfirm={handleDelete}
           onCancel={() => {
             setIsDeleteOpen(false);
             setDeletingItem(null);
+            setDeleteError(null);
           }}
           isDeleting={isDeleting}
         />

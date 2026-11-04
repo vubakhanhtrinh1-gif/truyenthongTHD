@@ -8,6 +8,7 @@ interface Props {
   onConfirm: () => Promise<void> | void;
   onCancel: () => void;
   isDeleting?: boolean;
+  errorMessage?: string | null;
 }
 
 export const DeleteConfirmationModal: React.FC<Props> = ({
@@ -17,6 +18,7 @@ export const DeleteConfirmationModal: React.FC<Props> = ({
   onConfirm,
   onCancel,
   isDeleting = false,
+  errorMessage,
 }) => {
   if (!isOpen) return null;
 
@@ -46,6 +48,11 @@ export const DeleteConfirmationModal: React.FC<Props> = ({
             <p className="text-xs text-zinc-400 bg-zinc-950 p-2.5 rounded border border-zinc-800 font-mono break-all">
               {itemDescription}
             </p>
+          )}
+          {errorMessage && (
+            <div className="p-3 rounded-lg bg-red-950/60 border border-red-500 text-xs text-red-200 font-medium">
+              {errorMessage}
+            </div>
           )}
           <p className="text-xs text-zinc-500 italic">
             Lưu ý: Thao tác này sẽ xóa vĩnh viễn dữ liệu khỏi Firestore và không thể khôi phục.

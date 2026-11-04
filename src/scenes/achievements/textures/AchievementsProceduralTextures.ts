@@ -12,6 +12,12 @@
 
 import * as THREE from 'three';
 import {
+  loadAndCacheImage,
+  getCachedImage,
+  drawImageContain,
+  markTextureNeedsUpdate,
+} from '../../../services/museumTextureService';
+import {
   AwardItem,
   AcademicStatisticItem,
   CulturalArtisticItem,

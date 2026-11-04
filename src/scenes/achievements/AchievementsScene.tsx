@@ -428,7 +428,7 @@ export function AchievementsScene({
     // 3. Renderer Setup
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -781,15 +781,6 @@ export function AchievementsScene({
           >
             <Languages className="w-3.5 h-3.5" />
             <span>{lang === 'vi' ? 'EN' : 'VI'}</span>
-          </button>
-
-          {/* Audio Mute */}
-          <button
-            onClick={toggleAudio}
-            className="p-1.5 rounded-xl bg-[#0e1626]/90 border border-[#d4af37]/40 text-[#ffd988] hover:bg-white/10 transition-colors cursor-pointer"
-            title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-zinc-500" /> : <Volume2 className="w-4 h-4 text-[#ffd988]" />}
           </button>
         </div>
       </div>
@@ -1521,10 +1512,10 @@ export function AchievementsScene({
               </p>
             </div>
 
-            {/* Photo / CMD Upload Placeholder Slot */}
-            <div className="p-4 rounded-2xl bg-black/50 border border-zinc-800 space-y-3">
-              <div className="text-xs font-mono font-bold text-zinc-300">TƯ LIỆU HÌNH ẢNH HOẠT ĐỘNG:</div>
-              {content.wallB.culturalArtistic.customUrl ? (
+            {/* Photo slot (strictly 01 photo if uploaded, otherwise hidden) */}
+            {content.wallB.culturalArtistic.customUrl && (
+              <div className="p-4 rounded-2xl bg-black/50 border border-zinc-800 space-y-3">
+                <div className="text-xs font-mono font-bold text-zinc-300">TƯ LIỆU HÌNH ẢNH HOẠT ĐỘNG:</div>
                 <div className="rounded-xl overflow-hidden border border-rose-400/40 max-h-56">
                   <img
                     src={content.wallB.culturalArtistic.customUrl}
@@ -1532,29 +1523,8 @@ export function AchievementsScene({
                     className="w-full h-full object-cover"
                   />
                 </div>
-              ) : (
-                <div className="p-6 rounded-xl border-2 border-dashed border-rose-500/40 bg-rose-950/20 flex flex-col items-center justify-center text-center space-y-2">
-                  <UploadCloud className="w-8 h-8 text-rose-400/80 animate-pulse" />
-                  <div className="text-xs font-serif text-zinc-300 font-bold">
-                    Khung Trưng Bày Tư Liệu Ảnh (Chờ cập nhật tư liệu gốc)
-                  </div>
-                  <p className="text-[11px] text-zinc-400 max-w-md">
-                    Không sử dụng ảnh mô phỏng. Quản trị viên có thể tải lên tư liệu ảnh lịch sử qua giao diện CMD Admin bất kỳ lúc nào.
-                  </p>
-                  {onOpenCmd && (
-                    <button
-                      onClick={() => {
-                        setIsCulturalModalOpen(false);
-                        onOpenCmd();
-                      }}
-                      className="mt-2 px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400 text-xs font-mono font-bold text-rose-200 transition-colors cursor-pointer"
-                    >
-                      Mở CMD Admin để tải ảnh →
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Narrative & Key Points */}
             <div className="p-4 rounded-2xl bg-black/40 border border-zinc-800 text-xs font-serif text-zinc-300 space-y-2.5 leading-relaxed">

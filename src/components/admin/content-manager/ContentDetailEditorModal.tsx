@@ -156,15 +156,6 @@ export const ContentDetailEditorModal: React.FC<Props> = ({
   };
 
   const handleClose = () => {
-    if (isDirty) {
-      if (
-        !window.confirm(
-          'Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn đóng trình chỉnh sửa?'
-        )
-      ) {
-        return;
-      }
-    }
     onClose();
   };
 

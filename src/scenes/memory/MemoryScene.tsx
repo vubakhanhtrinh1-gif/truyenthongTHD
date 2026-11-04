@@ -313,7 +313,7 @@ export function MemoryScene({
       alpha: false,
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -710,18 +710,6 @@ export function MemoryScene({
           >
             <HelpCircle className="w-4 h-4 text-[#D4AF37]" />
             <span className="hidden sm:inline">HƯỚNG DẪN</span>
-          </button>
-
-          <button
-            onClick={toggleAudio}
-            className="p-2 rounded-xl bg-[#23272E]/90 hover:bg-[#2C313A] border border-white/20 text-[#E0E2E8] hover:text-[#D4AF37] backdrop-blur-md shadow-lg cursor-pointer transition-all"
-            title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
-          >
-            {isMuted ? (
-              <VolumeX className="w-4 h-4 text-zinc-400" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-[#D4AF37]" />
-            )}
           </button>
         </div>
       </div>

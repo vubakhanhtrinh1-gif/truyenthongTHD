@@ -94,10 +94,13 @@ export const Layer2AttachmentManager: React.FC<Props> = ({
     }
   };
 
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   const handleRemove = (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa tệp đính kèm này khỏi bản ghi?')) {
-      onChange(attachments.filter((a) => a.id !== id));
-    }
+    onChange(attachments.filter((a) => a.id !== id));
+    setDeleteConfirmId(null);
+    setSuccessMsg('Đã xóa tệp đính kèm khỏi danh sách. Hãy nhấn "Lưu thay đổi" bên dưới để đồng bộ cơ sở dữ liệu.');
+    setTimeout(() => setSuccessMsg(null), 3500);
   };
 
   const handleUpdateMeta = (id: string, updates: Partial<FileAttachment>) => {
@@ -316,16 +319,37 @@ export const Layer2AttachmentManager: React.FC<Props> = ({
                   </div>
                 </div>
 
-                {/* Delete Button */}
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => handleRemove(att.id)}
-                  title="Xóa tệp đính kèm"
-                  className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* Delete Button with Inline Confirmation */}
+                {deleteConfirmId === att.id ? (
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => handleRemove(att.id)}
+                      className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold shadow-md cursor-pointer transition-colors"
+                    >
+                      Xóa ngay
+                    </button>
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setDeleteConfirmId(null)}
+                      className="px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px] cursor-pointer transition-colors"
+                    >
+                      Hủy
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setDeleteConfirmId(att.id)}
+                    title="Xóa tệp đính kèm này"
+                    className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>

@@ -1,4 +1,10 @@
 import * as THREE from 'three';
+import {
+  loadAndCacheImage,
+  getCachedImage,
+  drawImageContain,
+  markTextureNeedsUpdate,
+} from '../../../services/museumTextureService';
 
 /**
  * Procedural High-Fidelity Textures for History Room (Part 1: 1966–1975)
@@ -304,163 +310,407 @@ export function createZoneHeaderTexture(
   return texture;
 }
 
-// 6. Archival Parchment Document Display Texture
+// 6. Archival Parchment Document Display Canvas & Texture
+function drawParchmentDocumentCanvas(
+  canvas: HTMLCanvasElement,
+  title: string,
+  sub: string,
+  img: HTMLImageElement | null
+): void {
+  const ctx = canvas.getContext('2d')!;
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // Aged archival paper gradient
+  const bg = ctx.createLinearGradient(0, 0, w, h);
+  bg.addColorStop(0, '#f5ecd8');
+  bg.addColorStop(0.5, '#eee2c7');
+  bg.addColorStop(1, '#dfd1b2');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  // Gilded border & paper fiber vignette
+  ctx.strokeStyle = '#c5a059';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(16, 16, w - 32, h - 32);
+
+  ctx.strokeStyle = 'rgba(120, 80, 40, 0.2)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(24, 24, w - 48, h - 48);
+
+  // Top Title Banner
+  ctx.fillStyle = '#2c1808';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 24px "Noto Serif", Georgia, serif';
+  ctx.fillText(title, w / 2, 60);
+
+  ctx.font = 'italic 14px "Be Vietnam Pro", sans-serif';
+  ctx.fillStyle = '#63421e';
+  ctx.fillText(sub, w / 2, 88);
+
+  const photoBoxX = 36;
+  const photoBoxY = 106;
+  const photoBoxW = w - 72;
+  const photoBoxH = h - 180;
+
+  if (img && img.complete && img.naturalWidth > 0) {
+    // Ivory matting for uploaded document image
+    ctx.fillStyle = '#faf6ed';
+    ctx.fillRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+
+    // Draw uploaded document photograph with object-fit: contain
+    drawImageContain(ctx, img, photoBoxX + 8, photoBoxY + 8, photoBoxW - 16, photoBoxH - 16, 4);
+  } else {
+    // Dignified archival document placeholder
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+    ctx.strokeStyle = 'rgba(140, 95, 35, 0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+
+    // Red seal emblem stamp
+    ctx.strokeStyle = 'rgba(160, 25, 25, 0.75)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(w - 120, h - 230, 42, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(160, 25, 25, 0.85)';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText('TRẦN HƯNG ĐẠO', w - 120, h - 235);
+    ctx.fillText('★ 1966 ★', w - 120, h - 218);
+
+    // Simulated vintage calligraphy text lines
+    ctx.strokeStyle = 'rgba(50, 30, 15, 0.4)';
+    ctx.lineWidth = 1.8;
+    for (let y = 145; y < photoBoxY + photoBoxH - 50; y += 24) {
+      ctx.beginPath();
+      ctx.moveTo(photoBoxX + 24, y);
+      ctx.lineTo(photoBoxX + photoBoxW - 32 - ((y * 7) % 48), y);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#6b4821';
+    ctx.font = 'bold 13px "Be Vietnam Pro", sans-serif';
+    ctx.fillText('VĂN BẢN LƯU TRỮ LỊCH SỬ KHỞI DỰNG (1966)', w / 2, photoBoxY + photoBoxH - 24);
+  }
+
+  // Bottom caption plate
+  ctx.fillStyle = '#2c1808';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 13px "Noto Serif", Georgia, serif';
+  ctx.fillText('✦ BẢO VẬT TRUYỀN THỐNG • THỜI KỲ 1966–1975 ✦', w / 2, h - 36);
+  ctx.fillStyle = '#7a5a3a';
+  ctx.font = '11px "Be Vietnam Pro", sans-serif';
+  ctx.fillText('Hồ sơ tư liệu đối chiếu gốc từ văn thư lưu trữ của tỉnh', w / 2, h - 18);
+}
+
 export function createParchmentDocumentTexture(
   title: string,
   sub: string,
-  fieldTag: string
+  fieldTagOrUrl?: string
 ): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 724; // ~A4 ratio
-  const ctx = canvas.getContext('2d')!;
+  canvas.width = 640;
+  canvas.height = 896; // High definition A4 ratio
 
-  // Aged archival paper gradient
-  const bg = ctx.createLinearGradient(0, 0, 512, 724);
-  bg.addColorStop(0, '#f1e6cf');
-  bg.addColorStop(0.5, '#eae0c5');
-  bg.addColorStop(1, '#dfd2b2');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, 512, 724);
+  // Check if third parameter is an actual image URL or legacy fieldTag
+  const imageUrl = fieldTagOrUrl && !fieldTagOrUrl.startsWith('{{') ? fieldTagOrUrl : undefined;
+  const cachedImg = getCachedImage(imageUrl);
 
-  // Paper fiber & vintage vignette
-  ctx.strokeStyle = 'rgba(120, 80, 40, 0.25)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(20, 20, 472, 684);
-
-  ctx.strokeStyle = 'rgba(120, 80, 40, 0.15)';
-  ctx.strokeRect(28, 28, 456, 668);
-
-  // Title
-  ctx.fillStyle = '#2c1808';
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 22px serif';
-  ctx.fillText(title, 256, 80);
-
-  ctx.font = 'italic 14px serif';
-  ctx.fillStyle = '#63421e';
-  ctx.fillText(sub, 256, 115);
-
-  // Red seal emblem stamp
-  ctx.strokeStyle = 'rgba(160, 25, 25, 0.65)';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(380, 560, 45, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.fillStyle = 'rgba(160, 25, 25, 0.7)';
-  ctx.font = 'bold 12px monospace';
-  ctx.fillText('TRẦN HƯNG ĐẠO', 380, 555);
-  ctx.fillText('1966', 380, 572);
-
-  // Simulated vintage text lines
-  ctx.strokeStyle = 'rgba(40, 25, 10, 0.35)';
-  ctx.lineWidth = 1.5;
-  for (let y = 160; y < 500; y += 22) {
-    ctx.beginPath();
-    ctx.moveTo(40, y);
-    ctx.lineTo(472 - (y % 40), y);
-    ctx.stroke();
-  }
-
-  // Database field tag at bottom
-  ctx.fillStyle = '#7a5a3a';
-  ctx.font = '11px monospace';
-  ctx.fillText(fieldTag, 256, 670);
+  drawParchmentDocumentCanvas(canvas, title, sub, cachedImg);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
+
+  if (imageUrl && !cachedImg) {
+    loadAndCacheImage(imageUrl, (img) => {
+      drawParchmentDocumentCanvas(canvas, title, sub, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+
   return texture;
 }
 
-// 7. Interactive Evacuation Map Surface Texture
-export function createEvacuationMapPlaceholderTexture(): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 680;
+export function updateParchmentDocumentTexture(
+  texture: THREE.CanvasTexture,
+  title: string,
+  sub: string,
+  imageUrl?: string
+): void {
+  const canvas = texture.image as HTMLCanvasElement;
+  if (!canvas) return;
+
+  const cachedImg = getCachedImage(imageUrl);
+  drawParchmentDocumentCanvas(canvas, title, sub, cachedImg);
+  markTextureNeedsUpdate(texture);
+
+  if (imageUrl && !cachedImg) {
+    loadAndCacheImage(imageUrl, (img) => {
+      drawParchmentDocumentCanvas(canvas, title, sub, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+}
+
+// 7. Interactive Evacuation Map Surface Canvas & Texture
+function drawEvacuationMapCanvas(canvas: HTMLCanvasElement, img: HTMLImageElement | null): void {
   const ctx = canvas.getContext('2d')!;
+  const w = canvas.width;
+  const h = canvas.height;
 
   // Warm golden vintage canvas map background
-  const bg = ctx.createLinearGradient(0, 0, 1024, 680);
+  const bg = ctx.createLinearGradient(0, 0, w, h);
   bg.addColorStop(0, '#fbf4e2');
   bg.addColorStop(0.5, '#f5e9ce');
   bg.addColorStop(1, '#ebdcb8');
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, 1024, 680);
+  ctx.fillRect(0, 0, w, h);
 
   ctx.strokeStyle = '#d4af37';
   ctx.lineWidth = 6;
-  ctx.strokeRect(16, 16, 992, 648);
+  ctx.strokeRect(16, 16, w - 32, h - 32);
 
   ctx.strokeStyle = 'rgba(180, 130, 45, 0.4)';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(26, 26, 972, 628);
+  ctx.strokeRect(26, 26, w - 52, h - 52);
 
+  // Top Header Banner
   ctx.fillStyle = '#2c1508';
   ctx.textAlign = 'center';
-  ctx.font = 'bold 28px serif';
-  ctx.fillText('SƠ ĐỒ ĐỊA BÀN SƠ TÁN & DẠY HỌC THỜI CHIẾN (1966–1975)', 512, 64);
+  ctx.font = 'bold 28px "Noto Serif", Georgia, serif';
+  ctx.fillText('SƠ ĐỒ ĐỊA BÀN SƠ TÁN & DẠY HỌC THỜI CHIẾN (1966–1975)', w / 2, 64);
 
-  ctx.fillStyle = '#7a5223';
-  ctx.font = 'italic 16px serif';
-  ctx.fillText('{{DB: history | evacuation_map | image/png 3000x2000 | high}}', 512, 98);
+  const mapAreaX = 36;
+  const mapAreaY = 88;
+  const mapAreaW = w - 72;
+  const mapAreaH = h - 132;
 
-  // Topographical golden grid lines
-  ctx.strokeStyle = 'rgba(190, 140, 50, 0.18)';
-  ctx.lineWidth = 1;
-  for (let x = 60; x < 1024; x += 80) {
+  if (img && img.complete && img.naturalWidth > 0) {
+    // Dark mahogany mounting backdrop
+    ctx.fillStyle = '#1c140c';
+    ctx.fillRect(mapAreaX, mapAreaY, mapAreaW, mapAreaH);
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(mapAreaX, mapAreaY, mapAreaW, mapAreaH);
+
+    // Draw real uploaded evacuation map with object-fit: contain
+    drawImageContain(ctx, img, mapAreaX + 6, mapAreaY + 6, mapAreaW - 12, mapAreaH - 12, 6);
+  } else {
+    // Topographical golden grid lines
+    ctx.strokeStyle = 'rgba(190, 140, 50, 0.18)';
+    ctx.lineWidth = 1;
+    for (let x = 60; x < w; x += 80) {
+      ctx.beginPath();
+      ctx.moveTo(x, 100);
+      ctx.lineTo(x, h - 50);
+      ctx.stroke();
+    }
+    for (let y = 120; y < h - 40; y += 60) {
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(w - 40, y);
+      ctx.stroke();
+    }
+
+    // Simulated evacuation routes in royal cinnabar & gold
+    ctx.strokeStyle = '#b8202b';
+    ctx.lineWidth = 3.5;
+    ctx.setLineDash([8, 8]);
     ctx.beginPath();
-    ctx.moveTo(x, 120);
-    ctx.lineTo(x, 620);
+    ctx.moveTo(250, 480);
+    ctx.lineTo(420, 360);
+    ctx.lineTo(620, 400);
+    ctx.lineTo(780, 260);
     ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Checkpoints
+    const pins = [
+      { x: 250, y: 480, name: 'Sân đình Lang Xá (1966)' },
+      { x: 420, y: 360, name: 'Điểm sơ tán Xóm Trại' },
+      { x: 620, y: 400, name: 'Điểm sơ tán Hầm hào A' },
+      { x: 780, y: 260, name: 'Khu ổn định 1974 (Số 75 Trần Thái Tông)' },
+    ];
+
+    pins.forEach((p) => {
+      ctx.fillStyle = '#9e1b24';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffd988';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#3a1f0a';
+      ctx.font = 'bold 15px "Be Vietnam Pro", sans-serif';
+      ctx.fillText(p.name, p.x, p.y - 18);
+    });
+
+    ctx.fillStyle = '#7a5223';
+    ctx.font = 'italic 15px "Noto Serif", Georgia, serif';
+    ctx.fillText('✦ Bản đồ các cứ điểm học tập phân tán thời kỳ bom đạn (1966–1972) ✦', w / 2, h - 22);
   }
-  for (let y = 140; y < 640; y += 60) {
-    ctx.beginPath();
-    ctx.moveTo(40, y);
-    ctx.lineTo(984, y);
-    ctx.stroke();
-  }
+}
 
-  // Simulated evacuation routes in royal cinnabar & gold
-  ctx.strokeStyle = '#b8202b';
-  ctx.lineWidth = 3;
-  ctx.setLineDash([8, 8]);
-  ctx.beginPath();
-  ctx.moveTo(250, 480);
-  ctx.lineTo(420, 360);
-  ctx.lineTo(620, 400);
-  ctx.lineTo(780, 260);
-  ctx.stroke();
-  ctx.setLineDash([]);
+export function createEvacuationMapPlaceholderTexture(imageUrl?: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 680;
 
-  // Checkpoints
-  const pins = [
-    { x: 250, y: 480, name: 'Vị trí ban đầu (1966)' },
-    { x: 420, y: 360, name: 'Điểm sơ tán A' },
-    { x: 620, y: 400, name: 'Điểm sơ tán B' },
-    { x: 780, y: 260, name: 'Trường lớp hầm hào (1972)' },
-  ];
-
-  pins.forEach((p) => {
-    ctx.fillStyle = '#9e1b24';
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 11, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#ffd988';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    ctx.fillStyle = '#3a1f0a';
-    ctx.font = 'bold 15px monospace';
-    ctx.fillText(p.name, p.x, p.y - 18);
-  });
+  const cachedImg = getCachedImage(imageUrl);
+  drawEvacuationMapCanvas(canvas, cachedImg);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
+
+  if (imageUrl && !cachedImg) {
+    loadAndCacheImage(imageUrl, (img) => {
+      drawEvacuationMapCanvas(canvas, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+
   return texture;
+}
+
+export function updateEvacuationMapTexture(
+  texture: THREE.CanvasTexture,
+  imageUrl?: string
+): void {
+  const canvas = texture.image as HTMLCanvasElement;
+  if (!canvas) return;
+
+  const cachedImg = getCachedImage(imageUrl);
+  drawEvacuationMapCanvas(canvas, cachedImg);
+  markTextureNeedsUpdate(texture);
+
+  if (imageUrl && !cachedImg) {
+    loadAndCacheImage(imageUrl, (img) => {
+      drawEvacuationMapCanvas(canvas, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+}
+
+// 7B. Founding Class Photo Panorama Canvas & Texture
+function drawFoundingClassPhotoCanvas(canvas: HTMLCanvasElement, img: HTMLImageElement | null): void {
+  const ctx = canvas.getContext('2d')!;
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // Deep gallery charcoal / mahogany lacquer base
+  const bg = ctx.createLinearGradient(0, 0, w, h);
+  bg.addColorStop(0, '#1a1820');
+  bg.addColorStop(0.5, '#121016');
+  bg.addColorStop(1, '#09080b');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  // Ornate 24K Gold museum frame borders
+  ctx.strokeStyle = '#d4af37';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(14, 14, w - 28, h - 28);
+
+  ctx.strokeStyle = 'rgba(255, 235, 175, 0.5)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(26, 26, w - 52, h - 52);
+
+  const photoBoxX = 40;
+  const photoBoxY = 40;
+  const photoBoxW = w - 80;
+  const photoBoxH = h - 140;
+
+  if (img && img.complete && img.naturalWidth > 0) {
+    // Warm ivory matting border
+    ctx.fillStyle = '#f4ede0';
+    ctx.fillRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+    ctx.strokeStyle = '#c5a059';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+
+    // Draw class photo using contain
+    drawImageContain(ctx, img, photoBoxX + 6, photoBoxY + 6, photoBoxW - 12, photoBoxH - 12, 4);
+  } else {
+    // Archival sepia card placeholder
+    ctx.fillStyle = '#221e25';
+    ctx.fillRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+
+    // Historic silhouette representation
+    ctx.fillStyle = '#ffd988';
+    ctx.font = 'bold 54px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🎓', w / 2, photoBoxY + 120);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 28px "Noto Serif", Georgia, serif';
+    ctx.fillText('ẢNH KỶ YẾU CÁC KHÓA HỌC SINH ĐẦU TIÊN (1966–1975)', w / 2, photoBoxY + 185);
+
+    ctx.fillStyle = '#e5c778';
+    ctx.font = '16px "Be Vietnam Pro", sans-serif';
+    ctx.fillText('Chưa có ảnh tư liệu • Tải lên và quản lý trực tiếp qua CMD Admin', w / 2, photoBoxY + 235);
+  }
+
+  // Bottom gold title plaque
+  ctx.fillStyle = '#ffd988';
+  ctx.font = 'bold 20px "Noto Serif", Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('✦ KÝ ỨC THẦY VÀ TRÒ NHỮNG NĂM THÁNG GIAN LAO MÀ ANH HÙNG (1966–1975) ✦', w / 2, h - 55);
+
+  ctx.fillStyle = '#b8a07c';
+  ctx.font = 'italic 14px "Be Vietnam Pro", sans-serif';
+  ctx.fillText('Trường THPT A Trần Hưng Đạo — 60 Năm Di Sản & Tự Hào', w / 2, h - 30);
+}
+
+export function createFoundingClassPhotoTexture(imageUrl?: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 576; // 16:9 cinematic museum panorama
+
+  const cachedImg = getCachedImage(imageUrl);
+  drawFoundingClassPhotoCanvas(canvas, cachedImg);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+
+  if (imageUrl && !cachedImg) {
+    loadAndCacheImage(imageUrl, (img) => {
+      drawFoundingClassPhotoCanvas(canvas, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+
+  return texture;
+}
+
+export function updateFoundingClassPhotoTexture(
+  texture: THREE.CanvasTexture,
+  imageUrl?: string
+): void {
+  const canvas = texture.image as HTMLCanvasElement;
+  if (!canvas) return;
+
+  const cachedImg = getCachedImage(imageUrl);
+  drawFoundingClassPhotoCanvas(canvas, cachedImg);
+  markTextureNeedsUpdate(texture);
+
+  if (imageUrl && !cachedImg) {
+    loadAndCacheImage(imageUrl, (img) => {
+      drawFoundingClassPhotoCanvas(canvas, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
 }
 
 // 8. Martyrs and Military Enlistment Memorial Stele Texture (Section 1.5)
@@ -1232,34 +1482,35 @@ export function createFoundingIntroBoardTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-// 13. Mentor Portrait Canvas Texture (Chân Dung Thầy Tiền Bối với khung mạ vàng trang nghiêm)
-export function createMentorPortraitTexture(
+// 13. Mentor Portrait Canvas & Live Updating Texture (Chân Dung Thầy Tiền Bối với khung mạ vàng trang nghiêm)
+function drawMentorPortraitCanvas(
+  canvas: HTMLCanvasElement,
   role: string,
   name: string,
   note: string,
-  portraitNumber: string = '01'
-): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 768;
-  canvas.height = 1024;
+  portraitNumber: string,
+  img: HTMLImageElement | null
+): void {
   const ctx = canvas.getContext('2d')!;
+  const w = canvas.width;
+  const h = canvas.height;
 
   // Deep lacquer royal navy background
-  const bg = ctx.createLinearGradient(0, 0, 768, 1024);
+  const bg = ctx.createLinearGradient(0, 0, w, h);
   bg.addColorStop(0, '#161e30');
   bg.addColorStop(0.5, '#101624');
   bg.addColorStop(1, '#0b0f19');
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, 768, 1024);
+  ctx.fillRect(0, 0, w, h);
 
   // Gilded ornate border
   ctx.strokeStyle = '#d4af37';
   ctx.lineWidth = 8;
-  ctx.strokeRect(20, 20, 728, 984);
+  ctx.strokeRect(20, 20, w - 40, h - 40);
 
   ctx.strokeStyle = 'rgba(255, 235, 175, 0.6)';
   ctx.lineWidth = 2.5;
-  ctx.strokeRect(34, 34, 700, 956);
+  ctx.strokeRect(34, 34, w - 68, h - 68);
 
   // Corner decorations
   const drawCorner = (x: number, y: number, dirX: number, dirY: number) => {
@@ -1272,14 +1523,14 @@ export function createMentorPortraitTexture(
     ctx.stroke();
   };
   drawCorner(44, 44, 1, 1);
-  drawCorner(724, 44, -1, 1);
-  drawCorner(44, 980, 1, -1);
-  drawCorner(724, 980, -1, -1);
+  drawCorner(w - 44, 44, -1, 1);
+  drawCorner(44, h - 44, 1, -1);
+  drawCorner(w - 44, h - 44, -1, -1);
 
   // Top Badge: TRI ÂN TIỀN BỐI
   ctx.fillStyle = '#8c262e';
   ctx.beginPath();
-  ctx.roundRect(160, 52, 448, 54, 12);
+  ctx.roundRect(160, 52, w - 320, 54, 12);
   ctx.fill();
   ctx.strokeStyle = '#ffd988';
   ctx.lineWidth = 2;
@@ -1288,13 +1539,13 @@ export function createMentorPortraitTexture(
   ctx.fillStyle = '#fff6db';
   ctx.textAlign = 'center';
   ctx.font = 'bold 22px "Noto Serif", Georgia, serif';
-  ctx.fillText(`TRI ÂN TIỀN BỐI • VỊ THẦY SỐ ${portraitNumber}`, 384, 87);
+  ctx.fillText(`TRI ÂN TIỀN BỐI • VỊ THẦY SỐ ${portraitNumber}`, w / 2, 87);
 
   // Central Portrait Frame Box
   const photoBoxY = 135;
   const photoBoxW = 480;
   const photoBoxH = 480;
-  const photoBoxX = (768 - photoBoxW) / 2;
+  const photoBoxX = (w - photoBoxW) / 2;
 
   ctx.fillStyle = '#1c2438';
   ctx.beginPath();
@@ -1304,51 +1555,76 @@ export function createMentorPortraitTexture(
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // Classical oval cameo profile silhouette or academic seal
-  ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.ellipse(384, photoBoxY + 220, 160, 190, 0, 0, Math.PI * 2);
-  ctx.stroke();
+  if (img && img.complete && img.naturalWidth > 0) {
+    // Elegant warm museum matting backdrop
+    ctx.fillStyle = '#121824';
+    ctx.beginPath();
+    ctx.roundRect(photoBoxX + 6, photoBoxY + 6, photoBoxW - 12, photoBoxH - 12, 14);
+    ctx.fill();
 
-  // Subtle academic torch/laurel emblem in portrait center
-  ctx.fillStyle = 'rgba(255, 235, 175, 0.25)';
-  ctx.beginPath();
-  ctx.arc(384, photoBoxY + 180, 75, 0, Math.PI * 2);
-  ctx.fill();
+    // Draw real uploaded portrait with strict object-fit: contain
+    drawImageContain(
+      ctx,
+      img,
+      photoBoxX + 12,
+      photoBoxY + 12,
+      photoBoxW - 24,
+      photoBoxH - 24,
+      10
+    );
 
-  ctx.fillStyle = '#ffd988';
-  ctx.font = 'bold 64px serif';
-  ctx.fillText('✦', 384, photoBoxY + 200);
+    // Subtle gold inner trim
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.45)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(photoBoxX + 8, photoBoxY + 8, photoBoxW - 16, photoBoxH - 16, 12);
+    ctx.stroke();
+  } else {
+    // Classical oval cameo profile silhouette or academic seal
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(w / 2, photoBoxY + 220, 160, 190, 0, 0, Math.PI * 2);
+    ctx.stroke();
 
-  // Archival badge inside photo box
-  ctx.fillStyle = 'rgba(10, 14, 22, 0.75)';
-  ctx.beginPath();
-  ctx.roundRect(photoBoxX + 40, photoBoxY + 390, photoBoxW - 80, 60, 10);
-  ctx.fill();
-  ctx.strokeStyle = '#d4af37';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+    // Subtle academic torch/laurel emblem in portrait center
+    ctx.fillStyle = 'rgba(255, 235, 175, 0.25)';
+    ctx.beginPath();
+    ctx.arc(w / 2, photoBoxY + 180, 75, 0, Math.PI * 2);
+    ctx.fill();
 
-  ctx.fillStyle = '#ffe599';
-  ctx.font = 'bold 16px "Be Vietnam Pro", sans-serif';
-  ctx.fillText('ẢNH CHÂN DUNG LƯU TRỮ', 384, photoBoxY + 418);
-  ctx.fillStyle = '#c8d4e8';
-  ctx.font = '13px "Be Vietnam Pro", sans-serif';
-  ctx.fillText('(Cập nhật hình ảnh trực tiếp qua CMD Admin)', 384, photoBoxY + 438);
+    ctx.fillStyle = '#ffd988';
+    ctx.font = 'bold 64px serif';
+    ctx.fillText('✦', w / 2, photoBoxY + 200);
+
+    // Archival badge inside photo box
+    ctx.fillStyle = 'rgba(10, 14, 22, 0.85)';
+    ctx.beginPath();
+    ctx.roundRect(photoBoxX + 40, photoBoxY + 390, photoBoxW - 80, 60, 10);
+    ctx.fill();
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffe599';
+    ctx.font = 'bold 16px "Be Vietnam Pro", sans-serif';
+    ctx.fillText('CHƯA CÓ ẢNH TƯ LIỆU', w / 2, photoBoxY + 418);
+    ctx.fillStyle = '#c8d4e8';
+    ctx.font = '13px "Be Vietnam Pro", sans-serif';
+    ctx.fillText('(Cập nhật hình ảnh trực tiếp qua CMD Admin)', w / 2, photoBoxY + 438);
+  }
 
   // Role Banner
   ctx.fillStyle = '#ffd988';
   ctx.font = 'bold 26px "Noto Serif", Georgia, serif';
-  ctx.letterSpacing = '1px';
-  ctx.fillText(role.toUpperCase(), 384, 665);
+  ctx.fillText(role.toUpperCase(), w / 2, 665);
 
   // Mentor Full Name
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 36px "Noto Serif", Georgia, serif';
   ctx.shadowColor = 'rgba(212, 175, 55, 0.8)';
   ctx.shadowBlur = 12;
-  ctx.fillText(name, 384, 725);
+  ctx.fillText(name, w / 2, 725);
   ctx.shadowBlur = 0;
 
   // Divider line
@@ -1356,14 +1632,14 @@ export function createMentorPortraitTexture(
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(140, 755);
-  ctx.lineTo(628, 755);
+  ctx.lineTo(w - 140, 755);
   ctx.stroke();
 
   // Bio / Note (multi-line)
   ctx.fillStyle = '#e4d3b8';
   ctx.font = '20px "Be Vietnam Pro", sans-serif';
-  
-  const words = note.split(' ');
+
+  const words = (note || '').split(' ');
   let line = '';
   let curY = 800;
   const maxWidth = 640;
@@ -1371,24 +1647,71 @@ export function createMentorPortraitTexture(
     const testLine = line + words[n] + ' ';
     const metrics = ctx.measureText(testLine);
     if (metrics.width > maxWidth && n > 0) {
-      ctx.fillText(line, 384, curY);
+      ctx.fillText(line, w / 2, curY);
       line = words[n] + ' ';
       curY += 30;
     } else {
       line = testLine;
     }
   }
-  ctx.fillText(line, 384, curY);
+  ctx.fillText(line, w / 2, curY);
 
   // Bottom Notice
   ctx.fillStyle = '#a68550';
   ctx.font = 'italic 16px "Noto Serif", Georgia, serif';
-  ctx.fillText('✦ Khóa I (1966) • 60 Năm Di Sản THPT A Trần Hưng Đạo ✦', 384, 960);
+  ctx.fillText('✦ Khóa I (1966) • 60 Năm Di Sản THPT A Trần Hưng Đạo ✦', w / 2, 960);
+}
+
+export function createMentorPortraitTexture(
+  role: string,
+  name: string,
+  note: string,
+  portraitNumber: string = '01',
+  imageUrl?: string
+): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 768;
+  canvas.height = 1024;
+
+  const cachedImg = getCachedImage(imageUrl);
+  drawMentorPortraitCanvas(canvas, role, name, note, portraitNumber, cachedImg);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
+
+  if (imageUrl && !cachedImg) {
+    loadAndCacheImage(imageUrl, (img) => {
+      drawMentorPortraitCanvas(canvas, role, name, note, portraitNumber, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+
   return texture;
 }
+
+export function updateMentorPortraitTexture(
+  texture: THREE.CanvasTexture,
+  role: string,
+  name: string,
+  note: string,
+  portraitNumber: string = '01',
+  imageUrl?: string
+): void {
+  const canvas = texture.image as HTMLCanvasElement;
+  if (!canvas) return;
+
+  const cachedImg = getCachedImage(imageUrl);
+  drawMentorPortraitCanvas(canvas, role, name, note, portraitNumber, cachedImg);
+  markTextureNeedsUpdate(texture);
+
+  if (imageUrl && !cachedImg) {
+    loadAndCacheImage(imageUrl, (img) => {
+      drawMentorPortraitCanvas(canvas, role, name, note, portraitNumber, img);
+      markTextureNeedsUpdate(texture);
+    });
+  }
+}
+
 
 

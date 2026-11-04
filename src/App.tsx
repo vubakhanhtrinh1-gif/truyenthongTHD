@@ -23,42 +23,77 @@ import { ShieldAlert, LogOut, Loader2, Sparkles, ArrowLeft } from 'lucide-react'
 
 type AppView = 'entrance' | 'lobby' | 'history' | 'development' | 'achievements' | 'timeline' | 'memory' | 'cmd' | 'admin';
 
+/**
+ * Resolves the target view from the current browser URL.
+ * - The root URL '/' ALWAYS maps to 'entrance' (Cửa chính / Cổng chào di sản).
+ * - Deep link paths like '/history', '/lobby', '/timeline', etc. open only when explicitly requested.
+ * - Explicit query parameters (?room=history) are also honored.
+ */
+function resolveViewFromUrl(): AppView {
+  try {
+    if (typeof window !== 'undefined' && window.location) {
+      // 1. Check explicit URL query parameters for deep linking
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryRoom = searchParams.get('room') || searchParams.get('scene') || searchParams.get('view');
+      if (queryRoom) {
+        const q = queryRoom.trim().toLowerCase();
+        if (q === 'cmd' || q === 'admin-login') return 'cmd';
+        if (q === 'admin') return 'admin';
+        if (q === 'history' || q === 'lich-su') return 'history';
+        if (q === 'lobby' || q === 'sanh-chinh') return 'lobby';
+        if (q === 'development' || q === 'phat-trien') return 'development';
+        if (q === 'achievements' || q === 'thanh-tich') return 'achievements';
+        if (q === 'timeline' || q === 'dong-thoi-gian') return 'timeline';
+        if (q === 'memory' || q === 'tri-an' || q === 'ky-uc') return 'memory';
+        if (q === 'entrance' || q === 'cong-chao') return 'entrance';
+      }
+
+      // 2. Check path-based routing
+      const path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
+      if (path === '/cmd' || path === '/admin/login') return 'cmd';
+      if (path.startsWith('/admin')) return 'admin';
+      if (path === '/history' || path === '/lich-su') return 'history';
+      if (path === '/lobby' || path === '/sanh-chinh') return 'lobby';
+      if (path === '/development' || path === '/phat-trien') return 'development';
+      if (path === '/achievements' || path === '/thanh-tich') return 'achievements';
+      if (path === '/timeline' || path === '/dong-thoi-gian') return 'timeline';
+      if (path === '/memory' || path === '/tri-an' || path === '/ky-uc') return 'memory';
+      if (path === '/entrance' || path === '/cong-chao') return 'entrance';
+    }
+
+    // 3. The default starting point for visitors accessing root URL '/' is always the Entrance Gate
+    return 'entrance';
+  } catch {
+    return 'entrance';
+  }
+}
+
 function AppContent() {
   const { user, isAdmin, loading, authStatus, logout } = useAuth();
-  const [currentView, setCurrentView] = useState<AppView>(() => {
-    const path = window.location.pathname;
-    if (path === '/cmd' || path === '/admin/login') return 'cmd';
-    if (path.startsWith('/admin')) return 'admin';
-    if (path === '/entrance' || path === '/cong-chao') return 'entrance';
-    if (path === '/lobby' || path === '/sanh-chinh') return 'lobby';
-    if (path === '/development' || path === '/phat-trien') return 'development';
-    if (path === '/achievements' || path === '/thanh-tich') return 'achievements';
-    if (path === '/timeline' || path === '/dong-thoi-gian') return 'timeline';
-    if (path === '/memory' || path === '/tri-an' || path === '/ky-uc') return 'memory';
-    // Default immediately to the History Room (Khu 1: 1966–1975)
-    return 'history';
-  });
+  const [currentView, setCurrentView] = useState<AppView>(() => resolveViewFromUrl());
 
   const [cmdModalOpen, setCmdModalOpen] = useState(false);
 
   useEffect(() => {
     // Validate Firestore server connection on startup
     validateFirestoreConnection();
+
+    // Clear any obsolete stored room keys from previous sessions to prevent conflicts
+    try {
+      localStorage.removeItem('museum_current_room');
+      sessionStorage.removeItem('museum_current_room');
+      sessionStorage.removeItem('last_visited_room');
+      sessionStorage.removeItem('current_view');
+      sessionStorage.removeItem('initialScene');
+    } catch {
+      // ignore
+    }
   }, []);
 
   // Listen to browser navigation popstate
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname;
-      if (path === '/cmd' || path === '/admin/login') setCurrentView('cmd');
-      else if (path.startsWith('/admin')) setCurrentView('admin');
-      else if (path === '/entrance' || path === '/cong-chao') setCurrentView('entrance');
-      else if (path === '/lobby' || path === '/sanh-chinh') setCurrentView('lobby');
-      else if (path === '/development' || path === '/phat-trien') setCurrentView('development');
-      else if (path === '/achievements' || path === '/thanh-tich') setCurrentView('achievements');
-      else if (path === '/timeline' || path === '/dong-thoi-gian') setCurrentView('timeline');
-      else if (path === '/memory' || path === '/tri-an' || path === '/ky-uc') setCurrentView('memory');
-      else setCurrentView('history');
+      setCurrentView(resolveViewFromUrl());
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -67,12 +102,12 @@ function AppContent() {
   const navigateTo = (view: AppView) => {
     setCurrentView(view);
     const path =
-      view === 'history'
+      view === 'entrance'
         ? '/'
         : view === 'lobby'
         ? '/lobby'
-        : view === 'entrance'
-        ? '/entrance'
+        : view === 'history'
+        ? '/history'
         : view === 'development'
         ? '/development'
         : view === 'achievements'
@@ -84,7 +119,10 @@ function AppContent() {
         : view === 'cmd'
         ? '/cmd'
         : '/admin';
-    window.history.pushState(null, '', path);
+
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
   };
 
   // Automatically transition /cmd to /admin for authorized administrators

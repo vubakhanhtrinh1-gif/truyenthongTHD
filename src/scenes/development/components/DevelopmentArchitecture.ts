@@ -396,101 +396,62 @@ export function buildDevelopmentRoomArchitecture(
   colCapital2.position.y = 4.60;
   columnGroup.add(colCapital2);
 
-  // 3.3 The 3 Traditional Paintings mounted on the 3 prominent faces of the Grand Pillar
-  const paintingsData = content.centralPillarPaintings;
-  const paintingAngleStep = (Math.PI * 2) / 3; // 120 degrees apart
-  const mountRadius = 1.48; // mounted flush on the outer circumference of the column
+  // 3.3 Elegant Inscribed Monumental Plaque on the South Face of the Column (Duc Thanh Tran)
+  const ptg1 = content.centralPillarPaintings[0] || {
+    order: 1,
+    titleVi: 'Hưng Đạo Đại Vương Trần Quốc Tuấn',
+    captionVi: 'Hình tượng Đức Thánh Trần uy nghiêm • Điểm tựa tinh thần của nhà trường',
+    descriptionVi: 'Vị trí ghi danh và trưng bày hình ảnh tư liệu Đức Thánh Trần tại Cột trụ trung tâm.',
+  };
 
-  paintingsData.forEach((ptg, idx) => {
-    // Face angles: 0 rad (South/Entrance), 2π/3 (120° North-East), 4π/3 (240° North-West)
-    const angle = idx * paintingAngleStep;
-    const pGroup = new THREE.Group();
-    pGroup.position.set(
-      Math.sin(angle) * mountRadius,
-      2.35,
-      Math.cos(angle) * mountRadius
-    );
-    pGroup.rotation.y = angle;
+  const pGroup = new THREE.Group();
+  pGroup.position.set(0, 2.35, 1.48);
 
-    // Ornate Baroque Gilded Picture Frame
-    const frameW = 1.72;
-    const frameH = 2.22;
-    const frameMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(frameW + 0.14, frameH + 0.14, 0.08),
-      materials.brass
-    );
-    frameMesh.castShadow = true;
-    pGroup.add(frameMesh);
+  const frameMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(1.86, 2.36, 0.08),
+    materials.brass
+  );
+  frameMesh.castShadow = true;
+  pGroup.add(frameMesh);
 
-    // Inner Velvet Backing
-    const velvetMat = new THREE.MeshStandardMaterial({
-      color: 0x120e0a,
-      roughness: 0.6,
-      metalness: 0.1,
-    });
-    const velvetMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(frameW + 0.02, frameH + 0.02, 0.085),
-      velvetMat
-    );
-    pGroup.add(velvetMesh);
+  const canvasTex = createCentralPillarPaintingTexture(
+    1,
+    ptg1.titleVi,
+    ptg1.captionVi,
+    ptg1.customUrl
+  );
+  const canvasMat = new THREE.MeshStandardMaterial({
+    map: canvasTex,
+    roughness: 0.32,
+    metalness: 0.15,
+  });
+  const canvasMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.72, 2.22),
+    canvasMat
+  );
+  canvasMesh.position.z = 0.046;
+  pGroup.add(canvasMesh);
 
-    // Painting Canvas
-    const canvasTex = createCentralPillarPaintingTexture(
-      ptg.order,
-      ptg.titleVi,
-      ptg.captionVi,
-      ptg.customUrl
-    );
-    const canvasMat = new THREE.MeshStandardMaterial({
-      map: canvasTex,
-      roughness: 0.32,
-      metalness: 0.15,
-    });
-    const canvasMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(frameW, frameH),
-      canvasMat
-    );
-    canvasMesh.position.z = 0.046;
-    pGroup.add(canvasMesh);
+  columnGroup.add(pGroup);
 
-    columnGroup.add(pGroup);
+  const spot = new THREE.SpotLight(0xffecd0, 2.5, 12, Math.PI / 5, 0.45, 1.2);
+  spot.position.set(0, 4.9, 6.1);
+  spot.target.position.set(0, 2.35, 3.98);
+  root.add(spot);
+  root.add(spot.target);
+  spotlights.push(spot);
 
-    // Dedicated warm spotlight focused on each painting
-    const spot = new THREE.SpotLight(0xffecd0, 2.5, 12, Math.PI / 5, 0.45, 1.2);
-    spot.position.set(
-      Math.sin(angle) * 3.6,
-      4.9,
-      2.5 + Math.cos(angle) * 3.6
-    );
-    spot.target.position.set(
-      Math.sin(angle) * mountRadius,
-      2.35,
-      2.5 + Math.cos(angle) * mountRadius
-    );
-    root.add(spot);
-    root.add(spot.target);
-    spotlights.push(spot);
-
-    // Register interactive exhibit for CMD & public inspection
-    const exhibitId =
-      idx === 0
-        ? 'development_central_pillar_painting_1'
-        : idx === 1
-        ? 'development_central_pillar_painting_2'
-        : 'development_central_pillar_painting_3';
-
-    interactiveExhibits.push({
-      id: exhibitId,
-      mesh: canvasMesh,
-      titleVi: `ẢNH ĐỨC THÁNH TRẦN (KHUNG ${ptg.order}): ${ptg.titleVi.toUpperCase()}`,
-      subtitleVi: ptg.captionVi,
-      category: 'artifacts',
-      type: 'central_pillar_painting',
-      dataPayload: {
-        ...ptg,
-        cmdNote: 'Ảnh Đức Thánh Trần này được lưu trữ và tải lên trực tiếp thông qua hệ thống CMD.',
-      },
-    });
+  interactiveExhibits.push({
+    id: 'development_central_pillar_painting_1',
+    mesh: canvasMesh,
+    titleVi: `ẢNH ĐỨC THÁNH TRẦN: ${ptg1.titleVi.toUpperCase()}`,
+    subtitleVi: ptg1.captionVi,
+    category: 'artifacts',
+    type: 'central_pillar_painting',
+    dataPayload: {
+      ...ptg1,
+      cmdNote: 'Ảnh Đức Thánh Trần này được quản lý trực tiếp qua hệ thống CMD.',
+    },
   });
 
   root.add(columnGroup);
@@ -1327,69 +1288,7 @@ export function buildDevelopmentRoomArchitecture(
   plaque60Mesh.position.set(0, 3.3, 0.04);
   jubilee60Group.add(plaque60Mesh);
 
-  // -------------------------------------------------------------------------
-  // 3 END WALL PICTURE FRAMES (TẠI CUỐI PHÒNG, ĐỂ NGƯỜI QUẢN TRỊ TẢI LÊN TỪ CMD)
-  // -------------------------------------------------------------------------
-  const endPhotos = content.endWallPhotos;
-  const endXCoords = [-2.2, 0.0, 2.2];
-
-  endPhotos.forEach((photo, idx) => {
-    const fGroup = new THREE.Group();
-    fGroup.position.set(endXCoords[idx], 1.65, 0.035);
-
-    // Ornate Brass Gold Molding Frame
-    const fOuter = new THREE.Mesh(new THREE.BoxGeometry(1.95, 1.35, 0.06), materials.brass);
-    fOuter.castShadow = true;
-    fGroup.add(fOuter);
-
-    // Inner Velvet Matting
-    const fInner = new THREE.Mesh(
-      new THREE.BoxGeometry(1.88, 1.28, 0.065),
-      new THREE.MeshStandardMaterial({
-        color: 0x0f172a,
-        roughness: 0.6,
-        metalness: 0.1,
-      })
-    );
-    fGroup.add(fInner);
-
-    // Photo Canvas
-    const fTex = createEndWallPhotoTexture(photo.order, photo.titleVi, photo.captionVi, photo.customUrl);
-    const fMat = new THREE.MeshStandardMaterial({
-      map: fTex,
-      roughness: 0.28,
-      metalness: 0.18,
-    });
-    const fMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.85, 1.25), fMat);
-    fMesh.position.z = 0.036;
-    fGroup.add(fMesh);
-
-    jubilee60Group.add(fGroup);
-
-    panelPlacements.push({
-      id: `development_end_wall_photo_${photo.order}`,
-      name: `Khung Ảnh Cuối Phòng ${photo.order} (Tải từ CMD)`,
-      wall: 'north',
-      centerZ: -halfL + 0.6,
-      centerX: endXCoords[idx],
-      centerY: 1.65,
-      width: 1.85,
-      height: 1.3,
-    });
-
-    interactiveExhibits.push({
-      id: `development_end_wall_photo_${photo.order}`,
-      mesh: fMesh,
-      titleVi: `KHUNG ẢNH CUỐI PHÒNG ${photo.order}: ${photo.titleVi.toUpperCase()}`,
-      subtitleVi: photo.captionVi,
-      category: 'artifacts',
-      type: 'end_wall_photo',
-      dataPayload: {
-        ...photo,
-        cmdNote: 'Ảnh này được người quản trị trực tiếp tải lên từ mục Quản Lý Nội Dung trong CMD.',
-      },
-    });
-  });
+  // North end wall preserves canonical 60th Jubilee commemoration architecture without virtual picture frames
 
   // Low plinth for Jubilee commemoration & Building model (positioned slightly in front at Z = 1.6m)
   const jubileePed = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.45, 1.0), materials.pedestalStone);

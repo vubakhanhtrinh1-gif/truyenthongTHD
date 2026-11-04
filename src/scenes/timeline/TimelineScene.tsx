@@ -178,7 +178,7 @@ export function TimelineScene({
       alpha: false,
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -559,18 +559,6 @@ export function TimelineScene({
           >
             <HelpCircle className="w-4 h-4 text-[#CBA45B]" />
             <span className="hidden sm:inline">HƯỚNG DẪN</span>
-          </button>
-
-          <button
-            onClick={toggleAudio}
-            className="p-2 rounded-xl bg-[#141B30]/80 hover:bg-[#141B30] border border-[#CBA45B]/40 text-[#F0E7D6] hover:text-[#F4D58B] backdrop-blur-md shadow-lg cursor-pointer transition-all"
-            title={isMuted ? 'Bật âm thanh' : 'Tắt âm thanh'}
-          >
-            {isMuted ? (
-              <VolumeX className="w-4 h-4 text-zinc-400" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-[#CBA45B]" />
-            )}
           </button>
         </div>
       </div>

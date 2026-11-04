@@ -254,7 +254,7 @@ export const MainHallScene: React.FC<Props> = ({
       alpha: false,
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -679,19 +679,6 @@ export const MainHallScene: React.FC<Props> = ({
               EN
             </button>
           </div>
-
-          {/* Sound Toggle */}
-          <button
-            onClick={toggleAudio}
-            className="flex items-center gap-2 p-2 rounded-xl bg-[#141B30]/80 hover:bg-[#141B30] border border-[#D4AF62]/40 text-[#F3ECDD] hover:text-[#D4AF62] transition-all backdrop-blur-md text-xs cursor-pointer shadow-lg"
-            title={isMuted ? 'Bật âm thanh không gian' : 'Tắt âm thanh'}
-          >
-            {isMuted ? (
-              <VolumeX className="w-4 h-4 text-zinc-400" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-[#D4AF62]" />
-            )}
-          </button>
         </div>
       </div>
 
